@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="@yield('description', 'Питомник европейской бурмы МарМелАма в Омске. Котята, пометы, производители, отзывы и доставка по России.')">
+    <meta name="theme-color" content="#FAF7F2">
+    <title>@yield('title', 'МарМелАма: питомник европейской бурмы')</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/site.css') }}">
+</head>
+<body>
+    @include('partials.header')
+
+    <main>
+        @yield('content')
+    </main>
+
+    @include('partials.footer')
+
+    <a class="floating-messenger" href="{{ $site['max'] }}" aria-label="Написать в {{ $site['max_label'] }}">{{ $site['max_label'] }}</a>
+    <script src="{{ asset('js/site.js') }}" defer></script>
+</body>
+</html>
