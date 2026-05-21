@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Лапка МарМелАма">
+  <rect width="64" height="64" rx="16" fill="#FAF7F2"/>
+  <path fill="#8B5E3C" d="M31.8 35.4c5.8 0 13.6 7.2 13.6 14 0 4.6-3.9 7-8.5 5.2-1.8-.7-3.2-1.2-5.1-1.2s-3.4.5-5.1 1.2c-4.7 1.8-8.5-.6-8.5-5.2 0-6.8 7.8-14 13.6-14Z"/>
+  <ellipse cx="18.8" cy="27.4" rx="6.1" ry="8" fill="#8B5E3C" transform="rotate(-20 18.8 27.4)"/>
+  <ellipse cx="30.2" cy="20.1" rx="6.2" ry="8.7" fill="#8B5E3C" transform="rotate(-5 30.2 20.1)"/>
+  <ellipse cx="43.3" cy="27.4" rx="6.1" ry="8" fill="#8B5E3C" transform="rotate(20 43.3 27.4)"/>
+  <ellipse cx="52" cy="38.1" rx="5.2" ry="7.2" fill="#8B5E3C" transform="rotate(31 52 38.1)"/>
+  <ellipse cx="12" cy="38.1" rx="5.2" ry="7.2" fill="#8B5E3C" transform="rotate(-31 12 38.1)"/>
+</svg>

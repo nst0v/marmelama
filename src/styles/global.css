@@ -28,6 +28,7 @@
 
 html {
   scroll-behavior: smooth;
+  scroll-padding-top: 96px;
 }
 
 body {
@@ -171,12 +172,17 @@ p {
   font-weight: 800;
   line-height: 1.2;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .button:hover {
   background: var(--color-primary-dark);
+  box-shadow: 0 12px 24px rgba(111, 71, 43, 0.18);
   transform: translateY(-1px);
+}
+
+.button:active {
+  transform: translateY(0);
 }
 
 .button.secondary {
@@ -207,6 +213,17 @@ p {
   border-radius: var(--radius-lg);
   background: var(--color-surface);
   box-shadow: var(--shadow-soft);
+}
+
+.reveal-item {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.65s ease, transform 0.65s ease;
+}
+
+.reveal-item.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .page-hero {
@@ -363,6 +380,10 @@ p {
 }
 
 @media (max-width: 700px) {
+  html {
+    scroll-padding-top: 78px;
+  }
+
   .container {
     width: min(100% - 22px, var(--container));
   }
@@ -393,5 +414,25 @@ p {
 
   .meta-item span:last-child {
     text-align: left;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  .reveal-item {
+    opacity: 1;
+    transform: none;
   }
 }
