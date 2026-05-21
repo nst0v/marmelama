@@ -1,34 +1,92 @@
 # МарМелАма
 
-Тестовая статическая версия сайта питомника европейской бурмы «МарМелАма».
+Полноценная версия сайта питомника европейской бурмы на Laravel, Filament и MySQL.
+
+Astro/TypeScript-версия удалена. Laravel-приложение находится в корне репозитория.
 
 ## Стек
 
-- Astro
-- TypeScript
-- CSS без UI-фреймворка
-- статическая сборка для GitHub Pages
+- Laravel
+- Filament
+- MySQL
+- Blade
 
-## Команды
-
-```bash
-npm install
-npm run dev
-npm run build
-npm run preview
-```
-
-Локальный preview после сборки:
+## Локальный запуск
 
 ```bash
-npm run preview -- --host 127.0.0.1 --port 4321
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan make:filament-user
+php artisan serve
 ```
 
-## Структура
+Админка:
 
-- `src/data` - временные статические данные котят, пометов, производителей и отзывов.
-- `src/components` - переиспользуемые UI-компоненты.
-- `src/pages` - страницы и старые URL сайта.
-- `public/images` - изображения для тестовой версии.
+```text
+http://127.0.0.1:8000/admin
+```
 
-В финальной версии данные из `src/data` можно заменить на API, CMS или собственную админку.
+## База данных
+
+Для локальной разработки можно использовать SQLite из `.env`.
+
+Для сервера настрой MySQL:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=marmelama
+DB_USERNAME=marmelama
+DB_PASSWORD=
+```
+
+Пароли и реальные доступы хранятся только в `.env`. Этот файл не коммитится.
+
+## Админка
+
+В Filament уже подготовлены разделы:
+
+- котята;
+- пометы;
+- производители;
+- отзывы;
+- галерея;
+- страницы;
+- настройки сайта.
+
+## Старый сайт
+
+`old_site/` используется только как локальный архив старого PHP-сайта и не попадает в git.
+
+Для полного переноса контента нужен SQL-дамп старой базы. Старые таблицы, которые нужно импортировать:
+
+- `kittens`;
+- `pomet`;
+- `cats`;
+- `reviews`;
+- `content`;
+- `gallery`;
+- `news`;
+- `settings`.
+
+## Деплой
+
+На сервере web root должен смотреть на:
+
+```text
+public
+```
+
+После деплоя:
+
+```bash
+composer install --no-dev --optimize-autoloader
+php artisan migrate --force
+php artisan storage:link
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```

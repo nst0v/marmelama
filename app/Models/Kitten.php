@@ -1,0 +1,46 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Model;
+
+#[Fillable([
+    'old_id',
+    'litter_id',
+    'name',
+    'slug',
+    'sex',
+    'color',
+    'born_on',
+    'status',
+    'price',
+    'description',
+    'content',
+    'images',
+    'image_alt',
+    'image_title',
+    'meta_title',
+    'meta_description',
+    'meta_keywords',
+    'sort_order',
+    'is_visible',
+])]
+class Kitten extends Model
+{
+    protected function casts(): array
+    {
+        return [
+            'born_on' => 'date',
+            'price' => 'decimal:2',
+            'images' => 'array',
+            'is_visible' => 'boolean',
+        ];
+    }
+
+    public function litter(): BelongsTo
+    {
+        return $this->belongsTo(Litter::class);
+    }
+}
