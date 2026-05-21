@@ -1,0 +1,62 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+import { site } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = 'МарМелАма: питомник европейской бурмы',
+  description = 'Питомник европейской бурмы в Омске. Котята бурмы, пометы, производители, отзывы и доставка по России.'
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#FAF7F2" />
+    <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <Header />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+    <a class="floating-whatsapp" href={site.whatsapp} aria-label="Написать в WhatsApp">WhatsApp</a>
+  </body>
+</html>
+
+<style>
+  .floating-whatsapp {
+    position: fixed;
+    right: 18px;
+    bottom: 18px;
+    z-index: 40;
+    border-radius: 999px;
+    padding: 13px 18px;
+    background: #2f8f52;
+    color: #fff;
+    font-weight: 800;
+    box-shadow: 0 14px 34px rgba(31, 80, 49, 0.24);
+  }
+
+  @media (max-width: 760px) {
+    .floating-whatsapp {
+      right: 12px;
+      bottom: 12px;
+      padding: 11px 14px;
+      font-size: 14px;
+    }
+  }
+</style>

@@ -1,0 +1,57 @@
+---
+import type { Litter } from '../data/types';
+import Button from './Button.astro';
+import StatusBadge from './StatusBadge.astro';
+
+interface Props {
+  litter: Litter;
+}
+
+const { litter } = Astro.props;
+---
+
+<article class="litter-card card">
+  <div>
+    <div class="litter-top">
+      <span class="eyebrow">Помет {litter.letter}</span>
+      <StatusBadge status={litter.status} />
+    </div>
+    <h3>{litter.title}</h3>
+    <p class="muted">Дата рождения: {litter.date}</p>
+  </div>
+  <div class="litter-stats">
+    {typeof litter.boys === 'number' && <span>{litter.boys} мальчик{litter.boys === 1 ? '' : 'а'}</span>}
+    {typeof litter.girls === 'number' && <span>{litter.girls} девочк{litter.girls === 1 ? 'а' : 'и'}</span>}
+  </div>
+  <Button href={`/pomet/${litter.id}`} variant="secondary">Подробнее</Button>
+</article>
+
+<style>
+  .litter-card {
+    display: grid;
+    gap: 18px;
+    padding: 22px;
+  }
+
+  .litter-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .litter-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .litter-stats span {
+    border-radius: 999px;
+    padding: 7px 11px;
+    background: var(--color-soft);
+    color: var(--color-muted);
+    font-weight: 800;
+  }
+</style>

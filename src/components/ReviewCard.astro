@@ -1,0 +1,52 @@
+---
+import type { Review } from '../data/types';
+
+interface Props {
+  review: Review;
+}
+
+const { review } = Astro.props;
+---
+
+<article class="review-card card">
+  <div class="quote">“</div>
+  <p>{review.text}</p>
+  <footer>
+    <strong>{review.author}</strong>
+    <span>{review.date}</span>
+  </footer>
+</article>
+
+<style>
+  .review-card {
+    display: grid;
+    gap: 18px;
+    padding: 24px;
+  }
+
+  .quote {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--color-soft);
+    color: var(--color-primary);
+    font-family: Georgia, serif;
+    font-size: 42px;
+    line-height: 54px;
+    text-align: center;
+  }
+
+  p {
+    color: var(--color-muted);
+  }
+
+  footer {
+    display: grid;
+    gap: 2px;
+  }
+
+  span {
+    color: var(--color-muted);
+    font-size: 14px;
+  }
+</style>

@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ContactBlock from '../components/ContactBlock.astro';
+import ContactForm from '../components/ContactForm.astro';
+import { site } from '../data/site';
+---
+
+<BaseLayout title="Контакты - питомник МарМелАма" description="Контакты питомника МарМелАма: телефон, WhatsApp, email, ВКонтакте и форма обратной связи.">
+  <section class="page-hero">
+    <div class="container">
+      <p class="eyebrow">Контакты</p>
+      <h1>Наши контакты</h1>
+      <p class="lead">Напишите нам, если хотите узнать о свободных котятах, цене, бронировании или доставке.</p>
+    </div>
+  </section>
+  <section class="section">
+    <div class="container contacts-grid">
+      <ContactBlock />
+      <div class="card city-card">
+        <h2>Адрес</h2>
+        <p><strong>Город:</strong> Россия, {site.city}</p>
+        <p><strong>Телефон:</strong> <a href={site.phoneHref}>{site.phone}</a></p>
+        <p><strong>E-mail:</strong> <a href={site.emailHref}>{site.email}</a></p>
+      </div>
+      <ContactForm />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .contacts-grid {
+    display: grid;
+    grid-template-columns: 0.9fr 0.9fr 1.2fr;
+    gap: 22px;
+    align-items: start;
+  }
+
+  .city-card {
+    display: grid;
+    gap: 12px;
+    padding: 24px;
+  }
+
+  .city-card h2 {
+    font-family: var(--font-body);
+    font-size: 22px;
+  }
+
+  .city-card p {
+    color: var(--color-muted);
+  }
+
+  @media (max-width: 980px) {
+    .contacts-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

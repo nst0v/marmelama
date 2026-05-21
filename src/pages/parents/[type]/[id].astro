@@ -1,0 +1,79 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Gallery from '../../../components/Gallery.astro';
+import KittenCard from '../../../components/KittenCard.astro';
+import CTASection from '../../../components/CTASection.astro';
+import { getParentById, parents } from '../../../data/parents';
+import { kittens } from '../../../data/kittens';
+
+export function getStaticPaths() {
+  return parents.map((parent) => ({
+    params: {
+      type: parent.type === 'male' ? '1' : '0',
+      id: parent.id
+    }
+  }));
+}
+
+const parent = getParentById(Astro.params.id ?? '')!;
+const relatedKittens = kittens.slice(0, 3);
+---
+
+<BaseLayout title={`${parent.name} - производитель МарМелАма`} description={`${parent.name}: производитель питомника европейской бурмы МарМелАма.`}>
+  <section class="page-hero">
+    <div class="container parent-detail">
+      <Gallery images={parent.images} alt={`${parent.name}, производитель питомника МарМелАма`} />
+      <div class="detail-panel card">
+        <p class="eyebrow">{parent.type === 'male' ? 'Кот' : 'Кошка'}</p>
+        <h1>{parent.name}</h1>
+        {parent.description && <p class="lead">{parent.description}</p>}
+        <div class="meta-list">
+          {parent.title && <div class="meta-item"><span>Титул</span><span>{parent.title}</span></div>}
+          {parent.color && <div class="meta-item"><span>Окрас</span><span>{parent.color}</span></div>}
+          {parent.birthday && <div class="meta-item"><span>День рождения</span><span>{parent.birthday}</span></div>}
+          {parent.father && <div class="meta-item"><span>Отец</span><span>{parent.father}</span></div>}
+          {parent.mother && <div class="meta-item"><span>Мать</span><span>{parent.mother}</span></div>}
+          {parent.tests && <div class="meta-item"><span>Исследования</span><span>{parent.tests}</span></div>}
+          {parent.breeder && <div class="meta-item"><span>Заводчик</span><span>{parent.breeder}</span></div>}
+          {parent.owner && <div class="meta-item"><span>Владелец</span><span>{parent.owner}</span></div>}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--soft">
+    <div class="container">
+      <h2>Посмотреть котят</h2>
+      <div class="grid grid-3 related">
+        {relatedKittens.map((kitten) => <KittenCard kitten={kitten} compact />)}
+      </div>
+    </div>
+  </section>
+
+  <CTASection />
+</BaseLayout>
+
+<style>
+  .parent-detail {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.86fr);
+    gap: 34px;
+    align-items: start;
+  }
+
+  .detail-panel {
+    display: grid;
+    gap: 18px;
+    padding: 26px;
+  }
+
+  .related {
+    margin-top: 28px;
+  }
+
+  @media (max-width: 900px) {
+    .parent-detail {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

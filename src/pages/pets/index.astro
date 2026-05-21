@@ -1,0 +1,33 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import KittenCard from '../../components/KittenCard.astro';
+import CTASection from '../../components/CTASection.astro';
+import { kittens } from '../../data/kittens';
+---
+
+<BaseLayout title="Котята бурмы. Продажа - МарМелАма" description="Котята бурмы, доступные для бронирования в питомнике МарМелАма. Фото, пол, окрас, помет и связь с питомником.">
+  <section class="page-hero">
+    <div class="container">
+      <p class="eyebrow">Каталог</p>
+      <h1>Котята бурмы. Продажа</h1>
+      <p class="lead">Котята, которые сейчас доступны для бронирования в питомнике МарМелАма.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="tabs" aria-label="Фильтры каталога">
+        <a class="tab is-active" href="#all">Все</a>
+        <a class="tab" href="#boys">Мальчики</a>
+        <a class="tab" href="#girls">Девочки</a>
+        <a class="tab" href="#available">Свободные</a>
+        <a class="tab" href="#archive">Архив</a>
+      </div>
+      <div class="grid grid-3" id="all">
+        {kittens.map((kitten) => <KittenCard kitten={kitten} />)}
+      </div>
+    </div>
+  </section>
+
+  <CTASection title="Хотите узнать цену или забронировать котенка?" text="Напишите нам - расскажем о свободных малышах, характере, родителях и условиях переезда." />
+</BaseLayout>

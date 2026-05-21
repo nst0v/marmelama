@@ -1,0 +1,37 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import SectionTitle from '../../components/SectionTitle.astro';
+import LitterCard from '../../components/LitterCard.astro';
+import CTASection from '../../components/CTASection.astro';
+import { litters } from '../../data/litters';
+---
+
+<BaseLayout title="Пометы бурманских котят - МарМелАма" description="Список пометов питомника МарМелАма: даты рождения, количество мальчиков и девочек, архивные пометы.">
+  <section class="page-hero">
+    <div class="container">
+      <p class="eyebrow">Пометы</p>
+      <h1>Пометы</h1>
+      <p class="lead">Наглядный список актуальных и архивных пометов питомника МарМелАма.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <SectionTitle title="Актуальные пометы" text="Пометы, в которых есть котята или информация о текущем бронировании." />
+      <div class="grid grid-2">
+        {litters.filter((litter) => litter.status === 'active').map((litter) => <LitterCard litter={litter} />)}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--soft">
+    <div class="container">
+      <SectionTitle title="Архивные пометы" text="История предыдущих пометов питомника." />
+      <div class="grid grid-3">
+        {litters.filter((litter) => litter.status === 'archive').map((litter) => <LitterCard litter={litter} />)}
+      </div>
+    </div>
+  </section>
+
+  <CTASection title="Интересует котенок из текущего помета?" text="Напишите нам - расскажем, кто свободен, кто в брони, и какие малыши подходят вашей семье." />
+</BaseLayout>

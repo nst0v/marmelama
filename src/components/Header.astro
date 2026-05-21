@@ -1,0 +1,173 @@
+---
+import { nav, site } from '../data/site';
+import Button from './Button.astro';
+
+const base = import.meta.env.BASE_URL;
+const link = (href: string) => `${base}${href.replace(/^\//, '')}`;
+---
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href={link('/')}>
+      <span class="brand-name">{site.name}</span>
+      <span class="brand-tagline">{site.tagline}</span>
+    </a>
+
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-menu">
+      <span>Меню</span>
+    </button>
+
+    <nav class="main-nav" id="site-menu" aria-label="Основная навигация">
+      {nav.map((item) => <a href={link(item.href)}>{item.label}</a>)}
+    </nav>
+
+    <div class="header-actions">
+      <a class="phone-link" href={site.phoneHref}>{site.phone}</a>
+      <Button href={site.whatsapp} variant="secondary">WhatsApp</Button>
+      <Button href="/contacts">Забронировать</Button>
+    </div>
+  </div>
+</header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('.menu-toggle');
+  const nav = document.querySelector<HTMLElement>('.main-nav');
+
+  toggle?.addEventListener('click', () => {
+    const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!isOpen));
+    nav?.classList.toggle('is-open', !isOpen);
+  });
+</script>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    border-bottom: 1px solid rgba(232, 221, 211, 0.84);
+    background: rgba(250, 247, 242, 0.92);
+    backdrop-filter: blur(14px);
+  }
+
+  .header-inner {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 22px;
+    align-items: center;
+    min-height: 82px;
+  }
+
+  .brand {
+    display: grid;
+    gap: 1px;
+  }
+
+  .brand-name {
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .brand-tagline {
+    color: var(--color-muted);
+    font-size: 13px;
+  }
+
+  .main-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  .main-nav a {
+    border-radius: 999px;
+    padding: 8px 10px;
+    color: var(--color-muted);
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .main-nav a:hover {
+    background: var(--color-soft);
+    color: var(--color-primary-dark);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .phone-link {
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .menu-toggle {
+    display: none;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    padding: 10px 14px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font-weight: 800;
+  }
+
+  @media (max-width: 1100px) {
+    .header-inner {
+      grid-template-columns: auto auto;
+      justify-content: space-between;
+    }
+
+    .menu-toggle {
+      display: inline-flex;
+    }
+
+    .main-nav,
+    .header-actions {
+      grid-column: 1 / -1;
+    }
+
+    .main-nav {
+      display: none;
+      justify-content: flex-start;
+      border: 1px solid var(--color-border);
+      border-radius: 24px;
+      padding: 12px;
+      background: var(--color-surface);
+    }
+
+    .main-nav.is-open {
+      display: flex;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .header-inner {
+      min-height: 70px;
+      gap: 12px;
+    }
+
+    .brand-name {
+      font-size: 25px;
+    }
+
+    .brand-tagline {
+      font-size: 12px;
+    }
+
+    .header-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .phone-link {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

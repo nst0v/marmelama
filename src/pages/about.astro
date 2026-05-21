@@ -1,0 +1,92 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../components/Button.astro';
+import CTASection from '../components/CTASection.astro';
+---
+
+<BaseLayout title="О питомнике МарМелАма" description="О питомнике европейской бурмы МарМелАма, подходе к племенной работе, воспитанию и социализации котят.">
+  <section class="page-hero">
+    <div class="container split">
+      <div>
+        <p class="eyebrow">О питомнике</p>
+        <h1>МарМелАма - питомник европейской бурмы</h1>
+        <p class="lead">Питомник в Омске, где уделяют внимание породному типу, воспитанию выпускников и удобной коммуникации с будущими владельцами.</p>
+      </div>
+      <div class="about-card card">
+        <p>Основатель питомника - Елена Иванова. На сайте можно познакомиться с котятами, производителями, пометами и оставить заявку на покупку.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container content-grid">
+      <article>
+        <p class="eyebrow">О МарМелАма</p>
+        <h2>Бережная работа с породой</h2>
+        <p>В питомнике проводится работа по разведению и улучшению бурманской породы. Мы стремимся к развитию и уделяем много времени воспитанию выпускников, чтобы после переезда они радовали новых хозяев своими навыками.</p>
+      </article>
+      <article>
+        <p class="eyebrow">Наш подход</p>
+        <h2>Не только выбрать, но и подготовиться</h2>
+        <p>Мы помогаем будущим владельцам разобраться в характере котят, условиях покупки, адаптации дома, кормлении и первых бытовых вопросах.</p>
+      </article>
+      <article>
+        <p class="eyebrow">Племенная работа</p>
+        <h2>Выставки, титулы и развитие</h2>
+        <p>Животные питомника участвуют в выставках и мероприятиях. У производителей есть награды, титулы и данные, которые помогают покупателю лучше понимать происхождение котенка.</p>
+      </article>
+      <article>
+        <p class="eyebrow">Как растут котята</p>
+        <h2>Социализация рядом с человеком</h2>
+        <p>Котята привыкают к общению, бытовым звукам, лотку и когтеточке. Это помогает сделать переезд в новый дом спокойнее.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section section--soft">
+    <div class="container split">
+      <div>
+        <h2>Хотите познакомиться с котятами?</h2>
+        <p class="lead">Перейдите в каталог или напишите нам - подскажем, кто сейчас свободен.</p>
+      </div>
+      <div class="button-row">
+        <Button href="/pets">Смотреть котят</Button>
+        <Button href="/contacts" variant="secondary">Получить консультацию</Button>
+      </div>
+    </div>
+  </section>
+
+  <CTASection />
+</BaseLayout>
+
+<style>
+  .about-card {
+    padding: 26px;
+    color: var(--color-muted);
+    font-size: 18px;
+  }
+
+  .content-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+  }
+
+  article {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 26px;
+    background: var(--color-surface);
+  }
+
+  article p:last-child {
+    margin-top: 14px;
+    color: var(--color-muted);
+  }
+
+  @media (max-width: 760px) {
+    .content-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
