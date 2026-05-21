@@ -4,10 +4,12 @@ export const site = {
   city: 'Омск',
   phone: '+7 (913) 645-31-18',
   phoneHref: 'tel:+79136453118',
-  whatsapp: 'https://wa.me/79136453118',
+  max: 'https://max.ru',
+  maxLabel: 'MAX',
   email: 'balovatskaya@mail.ru',
   emailHref: 'mailto:balovatskaya@mail.ru',
   vk: 'https://vk.com/marmelama.omsk',
+  instagram: 'https://instagram.com/marmelama.omsk',
   copyright: 'Питомник МарМелАма'
 };
 

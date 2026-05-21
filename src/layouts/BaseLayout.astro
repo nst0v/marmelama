@@ -34,7 +34,7 @@ const {
       <slot />
     </main>
     <Footer />
-    <a class="floating-whatsapp" href={site.whatsapp} aria-label="Написать в WhatsApp">WhatsApp</a>
+    <a class="floating-messenger" href={site.max} aria-label={`Написать в ${site.maxLabel}`}>{site.maxLabel}</a>
     <script>
       const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -85,21 +85,21 @@ const {
 </html>
 
 <style>
-  .floating-whatsapp {
+  .floating-messenger {
     position: fixed;
     right: 18px;
     bottom: 18px;
     z-index: 40;
     border-radius: 999px;
     padding: 13px 18px;
-    background: #2f8f52;
+    background: var(--color-primary);
     color: #fff;
     font-weight: 800;
-    box-shadow: 0 14px 34px rgba(31, 80, 49, 0.24);
+    box-shadow: 0 14px 34px rgba(111, 71, 43, 0.24);
   }
 
   @media (max-width: 760px) {
-    .floating-whatsapp {
+    .floating-messenger {
       right: 12px;
       bottom: 12px;
       padding: 11px 14px;

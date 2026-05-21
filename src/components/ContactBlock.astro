@@ -8,12 +8,13 @@ import Button from './Button.astro';
   <p class="muted">Напишите нам, если хотите узнать о свободных котятах, цене, бронировании или доставке.</p>
   <div class="contact-links">
     <a href={site.phoneHref}>{site.phone}</a>
-    <a href={site.whatsapp}>WhatsApp</a>
+    <a href={site.max}>MAX: {site.phone}</a>
     <a href={site.emailHref}>{site.email}</a>
     <a href={site.vk}>ВКонтакте</a>
+    <a href={site.instagram}>Instagram</a>
   </div>
   <div class="button-row">
-    <Button href={site.whatsapp}>Написать в WhatsApp</Button>
+    <Button href={site.max}>Написать в MAX</Button>
     <Button href={site.phoneHref} variant="secondary">Позвонить</Button>
   </div>
 </div>
