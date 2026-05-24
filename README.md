@@ -11,7 +11,7 @@
 - Blade для публичных страниц
 - MySQL для боевого сервера
 - SQLite или MySQL для локальной разработки
-- Импорт старой базы через `php artisan legacy:import`
+- Импорт старой базы через `php artisan site:import-dump`
 - Без Node, Vite, Astro и TypeScript
 
 ## Основные разделы
@@ -146,13 +146,13 @@ php artisan serve
 Сначала можно проверить, что команда видит данные:
 
 ```bash
-php artisan legacy:import "/путь/до/marmelama_rf.sql" --dry-run
+php artisan site:import-dump "/путь/до/marmelama_rf.sql" --dry-run
 ```
 
 Полный импорт с очисткой уже импортированных таблиц:
 
 ```bash
-php artisan legacy:import "/путь/до/marmelama_rf.sql" --fresh
+php artisan site:import-dump "/путь/до/marmelama_rf.sql" --fresh
 ```
 
 Команда переносит в новую структуру:
@@ -177,13 +177,13 @@ old_site/file
 Папка `old_site/` нужна только локально и не коммитится. Если старый сайт скачан в другое место, укажи путь явно:
 
 ```bash
-php artisan legacy:import "/путь/до/marmelama_rf.sql" --fresh --image-source="/путь/до/старого_сайта/file"
+php artisan site:import-dump "/путь/до/marmelama_rf.sql" --fresh --image-source="/путь/до/старого_сайта/file"
 ```
 
 Скопированные файлы складываются в:
 
 ```text
-storage/app/public/legacy
+storage/app/public/media
 ```
 
 Чтобы картинки открывались в браузере, должна существовать ссылка:
@@ -317,7 +317,7 @@ php artisan make:filament-user
 Если нужно перенести старый контент на сервер:
 
 ```bash
-php artisan legacy:import "/путь/до/marmelama_rf.sql" --fresh --image-source="/путь/до/старого_сайта/file"
+php artisan site:import-dump "/путь/до/marmelama_rf.sql" --fresh --image-source="/путь/до/старого_сайта/file"
 ```
 
 После этого включи кеши:
@@ -418,5 +418,5 @@ php artisan test
 Повторный импорт старой базы:
 
 ```bash
-php artisan legacy:import "/путь/до/marmelama_rf.sql" --fresh
+php artisan site:import-dump "/путь/до/marmelama_rf.sql" --fresh
 ```

@@ -13,10 +13,13 @@
 <section class="section section-tight">
     <div class="container gallery-page-grid">
         @foreach($images as $image)
-            <a class="gallery-item" href="{{ asset('storage/'.$image->image_path) }}">
-                <img src="{{ asset('storage/'.$image->image_path) }}" alt="{{ $image->alt ?: $image->title ?: 'Фото МарМелАма' }}">
-                @if($image->title)<span>{{ $image->title }}</span>@endif
-            </a>
+            @php($imageUrl = \App\Support\MediaUrl::url($image->image_path))
+            @if($imageUrl)
+                <a class="gallery-item" href="{{ $imageUrl }}">
+                    <img src="{{ $imageUrl }}" alt="{{ $image->alt ?: $image->title ?: 'Фото МарМелАма' }}">
+                    @if($image->title)<span>{{ $image->title }}</span>@endif
+                </a>
+            @endif
         @endforeach
     </div>
 </section>

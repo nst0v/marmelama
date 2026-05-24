@@ -1,12 +1,13 @@
 @php
     $image = is_array($parent->images) ? ($parent->images[0] ?? null) : null;
+    $imageUrl = \App\Support\MediaUrl::url($image);
     $sexRoute = $parent->sex === 'male' ? '1' : '0';
 @endphp
 
 <article class="parent-card card">
     <a class="card-media" href="{{ route('parents.show', [$sexRoute, $parent->slug]) }}">
-        @if($image)
-            <img src="{{ asset('storage/'.$image) }}" alt="{{ $parent->name }}">
+        @if($imageUrl)
+            <img src="{{ $imageUrl }}" alt="{{ $parent->name }}">
         @else
             <span class="image-placeholder">МарМелАма</span>
         @endif

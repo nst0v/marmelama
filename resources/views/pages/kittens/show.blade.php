@@ -4,7 +4,10 @@
 
 @section('content')
 @php
-    $images = is_array($kitten->images) ? $kitten->images : [];
+    $images = collect(is_array($kitten->images) ? $kitten->images : [])
+        ->map(fn (string $image) => \App\Support\MediaUrl::url($image))
+        ->filter()
+        ->values();
     $status = ['available' => 'Свободен', 'reserved' => 'Бронь', 'sold' => 'Продан'][$kitten->status] ?? 'Статус уточняется';
 @endphp
 
@@ -12,7 +15,7 @@
     <div class="container detail-grid">
         <div class="gallery-grid">
             @forelse($images as $image)
-                <a href="{{ asset('storage/'.$image) }}"><img src="{{ asset('storage/'.$image) }}" alt="{{ $kitten->image_alt ?: $kitten->name }}"></a>
+                <a href="{{ $image }}"><img src="{{ $image }}" alt="{{ $kitten->image_alt ?: $kitten->name }}"></a>
             @empty
                 <span class="image-placeholder">МарМелАма</span>
             @endforelse

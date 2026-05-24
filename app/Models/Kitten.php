@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable([
     'old_id',
     'litter_id',
+    'source_litter_letter',
     'name',
     'slug',
     'sex',

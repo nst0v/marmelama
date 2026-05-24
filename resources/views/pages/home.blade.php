@@ -4,6 +4,7 @@
 @section('description', 'Бурманские котята из питомника МарМелАма в Омске. Свободные котята, пометы, производители, отзывы и доставка по России.')
 
 @section('content')
+@php($heroImageUrl = \App\Support\MediaUrl::url($heroImage))
 <section class="hero">
     <div class="container hero-grid">
         <div class="hero-copy">
@@ -22,8 +23,8 @@
             </div>
         </div>
         <div class="hero-media">
-            @if($heroImage)
-                <img src="{{ asset('storage/'.$heroImage) }}" alt="Бурманский котенок питомника МарМелАма">
+            @if($heroImageUrl)
+                <img src="{{ $heroImageUrl }}" alt="Бурманский котенок питомника МарМелАма">
             @else
                 <span class="image-placeholder hero-placeholder">МарМелАма</span>
             @endif

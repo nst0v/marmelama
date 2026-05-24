@@ -1,5 +1,6 @@
 @php
     $image = is_array($kitten->images) ? ($kitten->images[0] ?? null) : null;
+    $imageUrl = \App\Support\MediaUrl::url($image);
     $status = [
         'available' => ['Свободен', 'available'],
         'reserved' => ['Бронь', 'reserved'],
@@ -10,8 +11,8 @@
 
 <article class="kitten-card card">
     <a class="card-media" href="{{ route('kittens.show', $kitten->slug) }}">
-        @if($image)
-            <img src="{{ asset('storage/'.$image) }}" alt="{{ $kitten->image_alt ?: $kitten->name }}">
+        @if($imageUrl)
+            <img src="{{ $imageUrl }}" alt="{{ $kitten->image_alt ?: $kitten->name }}">
         @else
             <span class="image-placeholder">МарМелАма</span>
         @endif

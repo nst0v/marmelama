@@ -3,12 +3,12 @@
 @section('title', $parent->name.' - производитель МарМелАма')
 
 @section('content')
-@php($images = is_array($parent->images) ? $parent->images : [])
+@php($images = collect(is_array($parent->images) ? $parent->images : [])->map(fn (string $image) => \App\Support\MediaUrl::url($image))->filter()->values())
 <section class="page-hero detail-hero">
     <div class="container detail-grid">
         <div class="gallery-grid">
             @forelse($images as $image)
-                <a href="{{ asset('storage/'.$image) }}"><img src="{{ asset('storage/'.$image) }}" alt="{{ $parent->name }}"></a>
+                <a href="{{ $image }}"><img src="{{ $image }}" alt="{{ $parent->name }}"></a>
             @empty
                 <span class="image-placeholder">МарМелАма</span>
             @endforelse

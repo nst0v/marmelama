@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\BreedingCat;
 use App\Models\ContentPage;
+use App\Models\GalleryCategory;
 use App\Models\GalleryImage;
 use App\Models\Kitten;
 use App\Models\Litter;
@@ -15,16 +16,17 @@ use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
-#[Signature('legacy:import
-    {dump : Path to the old marmelama_rf.sql dump}
+#[Signature('site:import-dump
+    {dump : Path to the source marmelama_rf.sql dump}
     {--fresh : Clear imported content tables before import}
     {--dry-run : Parse and report counts without writing}
-    {--image-source=old_site/file : Directory with old uploaded images}')]
-#[Description('Import public content from the old Marmelama PHP/MySQL dump.')]
-class ImportLegacyDump extends Command
+    {--image-source=old_site/file : Directory with source uploaded images}')]
+#[Description('Import public content from the Marmelama SQL dump.')]
+class ImportSiteDump extends Command
 {
     private const TABLES = [
         'cats',
@@ -39,7 +41,7 @@ class ImportLegacyDump extends Command
         'slider',
     ];
 
-    private array $legacy = [];
+    private array $sourceData = [];
 
     public function handle(): int
     {
@@ -51,14 +53,14 @@ class ImportLegacyDump extends Command
             return self::FAILURE;
         }
 
-        $this->legacy = $this->parseDump($dumpPath);
+        $this->sourceData = $this->parseDump($dumpPath);
 
         $this->table([
-            'Legacy table',
+            'Source table',
             'Rows',
         ], collect(self::TABLES)->map(fn (string $table) => [
             $table,
-            count($this->legacy[$table] ?? []),
+            count($this->sourceData[$table] ?? []),
         ])->all());
 
         if ($this->option('dry-run')) {
@@ -82,7 +84,7 @@ class ImportLegacyDump extends Command
             $this->importSettings();
         });
 
-        $this->info('Legacy import completed.');
+        $this->info('Data import completed.');
 
         return self::SUCCESS;
     }
@@ -162,7 +164,7 @@ class ImportLegacyDump extends Command
             }
         }
 
-        throw new \RuntimeException('Unterminated INSERT statement in legacy dump.');
+        throw new \RuntimeException('Unterminated INSERT statement in source dump.');
     }
 
     private function splitInsertStatement(string $statement, string $table): array
@@ -287,27 +289,26 @@ class ImportLegacyDump extends Command
 
     private function clearImportedTables(): void
     {
-        DB::statement('PRAGMA foreign_keys = OFF');
-
-        foreach ([
-            'site_settings',
-            'gallery_images',
-            'news_posts',
-            'reviews',
-            'kittens',
-            'litters',
-            'breeding_cats',
-            'content_pages',
-        ] as $table) {
-            DB::table($table)->delete();
-        }
-
-        DB::statement('PRAGMA foreign_keys = ON');
+        Schema::withoutForeignKeyConstraints(function (): void {
+            foreach ([
+                'site_settings',
+                'gallery_images',
+                'gallery_categories',
+                'news_posts',
+                'reviews',
+                'kittens',
+                'litters',
+                'breeding_cats',
+                'content_pages',
+            ] as $table) {
+                DB::table($table)->delete();
+            }
+        });
     }
 
     private function importBreedingCats(): void
     {
-        foreach ($this->legacy['cats'] ?? [] as $row) {
+        foreach ($this->sourceData['cats'] ?? [] as $row) {
             BreedingCat::updateOrCreate(
                 ['old_id' => $this->int($row, 'id')],
                 [
@@ -325,7 +326,7 @@ class ImportLegacyDump extends Command
                     'owner' => $this->nullableString($row, 'owner'),
                     'description' => $this->nullableString($row, 'description'),
                     'content' => $this->nullableString($row, 'full_description'),
-                    'images' => $this->images($row),
+                    'images' => $this->images($row, 'media/parents', ['public/images/parents', 'public/images']),
                     'meta_title' => $this->nullableString($row, 'meta_title'),
                     'meta_description' => $this->nullableString($row, 'meta_desc'),
                     'meta_keywords' => $this->nullableString($row, 'meta_keywords'),
@@ -335,12 +336,12 @@ class ImportLegacyDump extends Command
             );
         }
 
-        $this->info('Imported breeding cats: '.count($this->legacy['cats'] ?? []));
+        $this->info('Imported breeding cats: '.count($this->sourceData['cats'] ?? []));
     }
 
     private function importLitters(): void
     {
-        foreach ($this->legacy['pomet'] ?? [] as $row) {
+        foreach ($this->sourceData['pomet'] ?? [] as $row) {
             $father = BreedingCat::where('old_id', $this->int($row, 'father_id'))->first();
             $mother = BreedingCat::where('old_id', $this->int($row, 'mother_id'))->first();
 
@@ -358,7 +359,7 @@ class ImportLegacyDump extends Command
                     'status' => ((int) ($row['status'] ?? 1)) === 0 ? 'archive' : 'available',
                     'description' => $this->nullableString($row, 'description'),
                     'content' => $this->nullableString($row, 'full_description'),
-                    'images' => $this->images($row),
+                    'images' => $this->images($row, 'media/litters', ['public/images/litters', 'public/images']),
                     'meta_title' => $this->nullableString($row, 'meta_title'),
                     'meta_description' => $this->nullableString($row, 'meta_desc'),
                     'meta_keywords' => $this->nullableString($row, 'meta_keywords'),
@@ -368,18 +369,19 @@ class ImportLegacyDump extends Command
             );
         }
 
-        $this->info('Imported litters: '.count($this->legacy['pomet'] ?? []));
+        $this->info('Imported litters: '.count($this->sourceData['pomet'] ?? []));
     }
 
     private function importKittens(): void
     {
-        foreach ($this->legacy['kittens'] ?? [] as $row) {
+        foreach ($this->sourceData['kittens'] ?? [] as $row) {
             $litter = Litter::where('letter', $this->string($row, 'pomet'))->first();
 
             Kitten::updateOrCreate(
                 ['old_id' => $this->int($row, 'id')],
                 [
                     'litter_id' => $litter?->id,
+                    'source_litter_letter' => $this->nullableString($row, 'pomet'),
                     'name' => $this->string($row, 'title') ?: 'Котенок',
                     'slug' => $this->slug($row, 'url', 'kitten-'.$this->int($row, 'id')),
                     'sex' => $this->guessSex($this->string($row, 'title').' '.$this->string($row, 'description')),
@@ -389,7 +391,7 @@ class ImportLegacyDump extends Command
                     'price' => ((int) ($row['price'] ?? 0)) > 0 ? (int) $row['price'] : null,
                     'description' => $this->nullableString($row, 'description'),
                     'content' => $this->nullableString($row, 'full_description'),
-                    'images' => $this->images($row),
+                    'images' => $this->images($row, 'media/kittens', ['public/images/kittens', 'public/images']),
                     'image_alt' => $this->nullableString($row, 'img_alt'),
                     'image_title' => $this->nullableString($row, 'img_title'),
                     'meta_title' => $this->nullableString($row, 'meta_title'),
@@ -401,12 +403,12 @@ class ImportLegacyDump extends Command
             );
         }
 
-        $this->info('Imported kittens: '.count($this->legacy['kittens'] ?? []));
+        $this->info('Imported kittens: '.count($this->sourceData['kittens'] ?? []));
     }
 
     private function importReviews(): void
     {
-        foreach ($this->legacy['reviews'] ?? [] as $row) {
+        foreach ($this->sourceData['reviews'] ?? [] as $row) {
             Review::updateOrCreate(
                 ['old_id' => $this->int($row, 'id')],
                 [
@@ -420,12 +422,12 @@ class ImportLegacyDump extends Command
             );
         }
 
-        $this->info('Imported reviews: '.count($this->legacy['reviews'] ?? []));
+        $this->info('Imported reviews: '.count($this->sourceData['reviews'] ?? []));
     }
 
     private function importContentPages(): void
     {
-        foreach ($this->legacy['content'] ?? [] as $row) {
+        foreach ($this->sourceData['content'] ?? [] as $row) {
             ContentPage::updateOrCreate(
                 ['old_id' => $this->int($row, 'id')],
                 [
@@ -442,49 +444,60 @@ class ImportLegacyDump extends Command
             );
         }
 
-        $this->info('Imported content pages: '.count($this->legacy['content'] ?? []));
+        $this->info('Imported content pages: '.count($this->sourceData['content'] ?? []));
     }
 
     private function importGallery(): void
     {
-        $categories = collect($this->legacy['gallery_cat'] ?? [])->keyBy('id');
+        $categories = collect($this->sourceData['gallery_cat'] ?? [])->keyBy('id');
+        $sliderCategory = $this->upsertGalleryCategory(null, 'slider');
 
-        foreach ($this->legacy['gallery'] ?? [] as $row) {
-            $category = $categories->get($row['cat'] ?? null);
+        foreach ($this->sourceData['gallery'] ?? [] as $row) {
+            $category = $this->upsertGalleryCategory($categories->get($row['cat'] ?? null));
 
             GalleryImage::updateOrCreate(
                 ['old_id' => $this->int($row, 'id')],
                 [
-                    'category' => $category['title'] ?? null,
+                    'gallery_category_id' => $category?->id,
+                    'category' => $category?->name,
                     'title' => $this->nullableString($row, 'title'),
                     'alt' => $this->nullableString($row, 'alt'),
-                    'image_path' => $this->image($this->string($row, 'img')) ?: $this->string($row, 'img'),
+                    'image_path' => $this->image(
+                        $this->string($row, 'img'),
+                        'media/gallery',
+                        ['public/images/gallery', 'public/images']
+                    ) ?: $this->string($row, 'img'),
                     'sort_order' => (int) ($row['prior'] ?? 0),
                     'is_visible' => true,
                 ]
             );
         }
 
-        foreach ($this->legacy['slider'] ?? [] as $row) {
+        foreach ($this->sourceData['slider'] ?? [] as $row) {
             GalleryImage::updateOrCreate(
                 ['old_id' => 100000 + $this->int($row, 'id')],
                 [
-                    'category' => 'slider',
+                    'gallery_category_id' => $sliderCategory?->id,
+                    'category' => $sliderCategory?->name,
                     'title' => $this->nullableString($row, 'title'),
                     'alt' => $this->nullableString($row, 'alt'),
-                    'image_path' => $this->image($this->string($row, 'img')) ?: $this->string($row, 'img'),
+                    'image_path' => $this->image(
+                        $this->string($row, 'img'),
+                        'media/gallery',
+                        ['public/images/gallery', 'public/images']
+                    ) ?: $this->string($row, 'img'),
                     'sort_order' => (int) ($row['prior'] ?? 0),
                     'is_visible' => (bool) ($row['visible'] ?? true),
                 ]
             );
         }
 
-        $this->info('Imported gallery images: '.(count($this->legacy['gallery'] ?? []) + count($this->legacy['slider'] ?? [])));
+        $this->info('Imported gallery images: '.(count($this->sourceData['gallery'] ?? []) + count($this->sourceData['slider'] ?? [])));
     }
 
     private function importNews(): void
     {
-        foreach ($this->legacy['news'] ?? [] as $row) {
+        foreach ($this->sourceData['news'] ?? [] as $row) {
             NewsPost::updateOrCreate(
                 ['old_id' => $this->int($row, 'id')],
                 [
@@ -492,7 +505,11 @@ class ImportLegacyDump extends Command
                     'slug' => 'news-'.$this->int($row, 'id'),
                     'excerpt' => $this->nullableString($row, 'kratk'),
                     'content' => $this->nullableString($row, 'novost'),
-                    'image' => $this->image($this->string($row, 'img')),
+                    'image' => $this->image(
+                        $this->string($row, 'img'),
+                        'media/news',
+                        ['public/images/news', 'public/images']
+                    ),
                     'published_at' => $this->date($row['data'] ?? null),
                     'is_visible' => true,
                     'sort_order' => (int) ($row['prior'] ?? 0),
@@ -500,12 +517,12 @@ class ImportLegacyDump extends Command
             );
         }
 
-        $this->info('Imported news posts: '.count($this->legacy['news'] ?? []));
+        $this->info('Imported news posts: '.count($this->sourceData['news'] ?? []));
     }
 
     private function importSettings(): void
     {
-        foreach ($this->legacy['settings'] ?? [] as $row) {
+        foreach ($this->sourceData['settings'] ?? [] as $row) {
             foreach ([
                 'admin_email' => ['Контактный email', 'email'],
                 'phone' => ['Телефон', 'text'],
@@ -517,7 +534,7 @@ class ImportLegacyDump extends Command
                 SiteSetting::updateOrCreate(
                     ['key' => $key],
                     [
-                        'group' => 'legacy',
+                        'group' => 'main',
                         'value' => (string) ($row[$key] ?? ''),
                         'type' => $type,
                         'label' => $label,
@@ -526,7 +543,48 @@ class ImportLegacyDump extends Command
             }
         }
 
-        $this->info('Imported settings groups: '.count($this->legacy['settings'] ?? []));
+        $this->info('Imported settings groups: '.count($this->sourceData['settings'] ?? []));
+    }
+
+    private function upsertGalleryCategory(?array $row, ?string $fallbackName = null): ?GalleryCategory
+    {
+        $name = $row !== null
+            ? $this->nullableString($row, 'title')
+            : ($fallbackName !== null ? trim($fallbackName) : null);
+
+        if ($name === null || $name === '') {
+            return null;
+        }
+
+        $baseSlug = $row !== null
+            ? $this->slug($row, 'url', Str::slug($name) ?: 'gallery-category')
+            : (Str::slug($name) ?: 'gallery-category');
+
+        if ($row !== null && $this->int($row, 'id') > 0) {
+            $existing = GalleryCategory::query()
+                ->where('old_id', $this->int($row, 'id'))
+                ->first();
+
+            $slug = $existing !== null
+                ? GalleryCategory::nextAvailableSlug($baseSlug, $existing->id)
+                : GalleryCategory::nextAvailableSlug($baseSlug);
+
+            return GalleryCategory::query()->updateOrCreate(
+                ['old_id' => $this->int($row, 'id')],
+                [
+                    'name' => $name,
+                    'slug' => $slug,
+                    'description' => $this->nullableString($row, 'descr'),
+                    'meta_title' => $this->nullableString($row, 'meta_title'),
+                    'meta_description' => $this->nullableString($row, 'meta_descr'),
+                    'meta_keywords' => $this->nullableString($row, 'meta_keywords'),
+                    'sort_order' => (int) ($row['prior'] ?? 0),
+                    'is_visible' => ((int) ($row['hide'] ?? 0)) === 0 && ((int) ($row['vis'] ?? 1)) === 1,
+                ]
+            );
+        }
+
+        return GalleryCategory::findOrCreateByName($name);
     }
 
     private function string(array $row, string $key): string
@@ -603,7 +661,7 @@ class ImportLegacyDump extends Command
         };
     }
 
-    private function images(array $row): array
+    private function images(array $row, string $targetDirectory, array $sourceDirectories = []): array
     {
         $images = [];
 
@@ -611,30 +669,64 @@ class ImportLegacyDump extends Command
             $image = trim((string) ($row['img'.$i] ?? ''));
 
             if ($image !== '') {
-                $images[] = $this->image($image) ?: $image;
+                $images[] = $this->image($image, $targetDirectory, $sourceDirectories) ?: $image;
             }
         }
 
         return $images;
     }
 
-    private function image(string $filename): ?string
+    private function image(string $filename, string $targetDirectory = 'media/misc', array $sourceDirectories = []): ?string
     {
         if ($filename === '') {
             return null;
         }
 
-        $sourceDir = (string) $this->option('image-source');
-        $sourcePath = base_path($sourceDir.'/'.$filename);
+        $normalized = ltrim(str_replace('\\', '/', $filename), '/');
 
-        if (! is_file($sourcePath)) {
+        if (str_starts_with($normalized, trim($targetDirectory, '/').'/') && Storage::disk('public')->exists($normalized)) {
+            return $normalized;
+        }
+
+        $sourcePath = $this->findImageSourcePath($normalized, $sourceDirectories);
+
+        if ($sourcePath === null) {
             return $filename;
         }
 
-        $target = 'legacy/'.$filename;
+        $target = trim($targetDirectory, '/').'/'.basename($normalized);
         Storage::disk('public')->put($target, file_get_contents($sourcePath));
 
         return $target;
+    }
+
+    private function findImageSourcePath(string $filename, array $sourceDirectories = []): ?string
+    {
+        $sourceDir = trim((string) $this->option('image-source'));
+        $candidates = [];
+
+        if ($sourceDir !== '') {
+            $candidates[] = base_path(trim($sourceDir, '/').'/'.$filename);
+        }
+
+        foreach ($sourceDirectories as $directory) {
+            $directory = trim($directory, '/');
+
+            if ($directory === '') {
+                continue;
+            }
+
+            $candidates[] = base_path($directory.'/'.$filename);
+            $candidates[] = base_path($directory.'/'.basename($filename));
+        }
+
+        foreach ($candidates as $candidate) {
+            if (is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 
     private function extractGeneticTests(string $html): ?string
