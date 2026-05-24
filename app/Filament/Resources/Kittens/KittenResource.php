@@ -13,22 +13,30 @@ use App\Models\Kitten;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Contracts\Support\Htmlable;
+use Illuminate\Support\HtmlString;
 
 class KittenResource extends Resource
 {
     protected static ?string $model = Kitten::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = null;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Питомник';
+
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $navigationLabel = 'Котята';
 
     protected static ?string $modelLabel = 'котенок';
 
     protected static ?string $pluralModelLabel = 'котята';
+
+    public static function getNavigationIcon(): string|BackedEnum|Htmlable|null
+    {
+        return new HtmlString(file_get_contents(public_path('admin-icons/cat-face.svg')));
+    }
 
     public static function form(Schema $schema): Schema
     {

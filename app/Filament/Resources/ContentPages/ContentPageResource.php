@@ -20,9 +20,11 @@ class ContentPageResource extends Resource
 {
     protected static ?string $model = ContentPage::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::DocumentText;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Контент';
+
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $navigationLabel = 'Страницы';
 

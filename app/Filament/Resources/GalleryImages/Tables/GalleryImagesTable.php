@@ -16,27 +16,40 @@ class GalleryImagesTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('sort_order', 'desc')
             ->columns([
-                TextColumn::make('old_id')
-                    ->numeric()
-                    ->sortable(),
-                TextColumn::make('category')
+                ImageColumn::make('image_path')
+                    ->label('Фото')
+                    ->disk('public')
+                    ->square(),
+                TextColumn::make('galleryCategory.name')
+                    ->label('Категория')
                     ->searchable(),
                 TextColumn::make('title')
+                    ->label('Название')
                     ->searchable(),
                 TextColumn::make('alt')
+                    ->label('Описание картинки')
                     ->searchable(),
-                ImageColumn::make('image_path'),
                 TextColumn::make('sort_order')
+                    ->label('Приоритет')
                     ->numeric()
                     ->sortable(),
                 IconColumn::make('is_visible')
+                    ->label('Видно')
                     ->boolean(),
+                TextColumn::make('old_id')
+                    ->label('Внутренний номер')
+                    ->numeric()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
+                    ->label('Создано')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Обновлено')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

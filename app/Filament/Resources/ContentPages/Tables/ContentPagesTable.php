@@ -17,28 +17,40 @@ class ContentPagesTable
         return $table
             ->columns([
                 TextColumn::make('old_id')
+                    ->label('Внутренний номер')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('title')
+                    ->label('Название')
                     ->searchable(),
                 TextColumn::make('slug')
+                    ->label('ЧПУ')
                     ->searchable(),
                 TextColumn::make('h1')
+                    ->label('Главный заголовок')
                     ->searchable(),
                 TextColumn::make('meta_title')
-                    ->searchable(),
+                    ->label('Заголовок для поисковиков')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 IconColumn::make('is_system')
+                    ->label('Служебная')
                     ->boolean(),
                 IconColumn::make('is_visible')
+                    ->label('Видна')
                     ->boolean(),
                 TextColumn::make('sort_order')
+                    ->label('Приоритет')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('created_at')
+                    ->label('Создана')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Обновлена')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

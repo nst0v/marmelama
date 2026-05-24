@@ -16,42 +16,76 @@ class KittensTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('sort_order', 'desc')
             ->columns([
-                TextColumn::make('old_id')
-                    ->numeric()
-                    ->sortable(),
+                ImageColumn::make('cover_image')
+                    ->label('Фото')
+                    ->disk('public')
+                    ->square(),
                 TextColumn::make('litter.title')
+                    ->label('Помет')
                     ->searchable(),
                 TextColumn::make('name')
+                    ->label('Имя')
                     ->searchable(),
                 TextColumn::make('slug')
+                    ->label('ЧПУ')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('sex')
+                    ->label('Пол')
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'male' => 'Мальчик',
+                        'female' => 'Девочка',
+                        default => 'Не указан',
+                    })
                     ->searchable(),
                 TextColumn::make('color')
+                    ->label('Окрас')
                     ->searchable(),
                 TextColumn::make('born_on')
+                    ->label('Дата рождения')
                     ->date()
                     ->sortable(),
                 TextColumn::make('status')
+                    ->label('Статус')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'available' => 'success',
+                        'sold' => 'warning',
+                        'reserved' => 'info',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'available' => 'Свободен',
+                        'reserved' => 'Бронь',
+                        'sold' => 'Продан',
+                        default => 'Не указан',
+                    })
                     ->searchable(),
                 TextColumn::make('price')
+                    ->label('Цена')
                     ->money()
                     ->sortable(),
-                ImageColumn::make('image_alt'),
-                ImageColumn::make('image_title'),
-                TextColumn::make('meta_title')
-                    ->searchable(),
                 TextColumn::make('sort_order')
+                    ->label('Приоритет')
                     ->numeric()
                     ->sortable(),
                 IconColumn::make('is_visible')
+                    ->label('Виден')
                     ->boolean(),
+                TextColumn::make('old_id')
+                    ->label('Внутренний номер')
+                    ->numeric()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('created_at')
+                    ->label('Создан')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Обновлен')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

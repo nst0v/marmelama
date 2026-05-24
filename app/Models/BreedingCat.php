@@ -23,6 +23,8 @@ use Illuminate\Database\Eloquent\Model;
     'description',
     'content',
     'images',
+    'image_alt',
+    'image_title',
     'meta_title',
     'meta_description',
     'meta_keywords',
@@ -31,6 +33,11 @@ use Illuminate\Database\Eloquent\Model;
 ])]
 class BreedingCat extends Model
 {
+    public function getCoverImageAttribute(): ?string
+    {
+        return is_array($this->images) ? ($this->images[0] ?? null) : null;
+    }
+
     protected function casts(): array
     {
         return [

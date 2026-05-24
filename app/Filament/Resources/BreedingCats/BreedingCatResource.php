@@ -20,9 +20,11 @@ class BreedingCatResource extends Resource
 {
     protected static ?string $model = BreedingCat::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::Identification;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Питомник';
+
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $navigationLabel = 'Производители';
 

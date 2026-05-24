@@ -18,9 +18,10 @@ Route::get('/gallery', [SiteController::class, 'gallery'])->name('gallery');
 Route::get('/news', [SiteController::class, 'news'])->name('news.index');
 Route::get('/news/{slug}', [SiteController::class, 'newsPost'])->name('news.show');
 Route::get('/archive', [SiteController::class, 'archive'])->name('archive');
+Route::get('/articles', [SiteController::class, 'articles'])->name('articles');
+Route::get('/article/{slug}', [SiteController::class, 'article'])->name('articles.show');
 Route::get('/politics', fn () => view('pages.placeholder', [
     'title' => 'Политика конфиденциальности',
     'text' => 'Страница будет заполнена юридическим текстом перед публикацией.',
 ]))->name('politics');
-Route::get('/articles', fn () => view('pages.placeholder', ['title' => 'Статьи', 'text' => 'Раздел будет наполнен после переноса материалов.']))->name('articles');
 Route::get('/{slug}', [SiteController::class, 'page'])->where('slug', '[A-Za-z0-9_-]+')->name('content.show');

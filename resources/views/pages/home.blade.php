@@ -24,7 +24,7 @@
         </div>
         <div class="hero-media">
             @if($heroImageUrl)
-                <img src="{{ $heroImageUrl }}" alt="Бурманский котенок питомника МарМелАма">
+                <img src="{{ $heroImageUrl }}" alt="{{ $heroSlide?->alt ?: 'Бурманский котенок питомника МарМелАма' }}">
             @else
                 <span class="image-placeholder hero-placeholder">МарМелАма</span>
             @endif

@@ -18,29 +18,41 @@ class ReviewsTable
         return $table
             ->columns([
                 TextColumn::make('old_id')
+                    ->label('Внутренний номер')
                     ->numeric()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('author_name')
+                    ->label('Автор')
                     ->searchable(),
                 TextColumn::make('phone')
+                    ->label('Телефон')
                     ->searchable(),
                 TextColumn::make('email')
-                    ->label('Email address')
+                    ->label('Почта')
                     ->searchable(),
-                ImageColumn::make('image'),
+                ImageColumn::make('image')
+                    ->label('Фото')
+                    ->disk('public')
+                    ->square(),
                 TextColumn::make('reviewed_at')
+                    ->label('Дата')
                     ->date()
                     ->sortable(),
                 IconColumn::make('is_visible')
+                    ->label('Виден')
                     ->boolean(),
                 TextColumn::make('sort_order')
+                    ->label('Приоритет')
                     ->numeric()
                     ->sortable(),
                 TextColumn::make('created_at')
+                    ->label('Создан')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Обновлен')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

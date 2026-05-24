@@ -2,11 +2,13 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Article;
 use App\Models\BreedingCat;
 use App\Models\GalleryImage;
 use App\Models\Kitten;
 use App\Models\Litter;
 use App\Models\NewsPost;
+use App\Models\Slide;
 use Illuminate\Console\Attributes\Description;
 use Illuminate\Console\Attributes\Signature;
 use Illuminate\Console\Command;
@@ -26,6 +28,8 @@ class SyncMediaStorage extends Command
             'kittens' => 0,
             'gallery_images' => 0,
             'news_posts' => 0,
+            'slides' => 0,
+            'articles' => 0,
             'files_moved' => 0,
             'missing_files' => 0,
         ];
@@ -67,6 +71,22 @@ class SyncMediaStorage extends Command
             $stats,
         );
 
+        $stats['slides'] = $this->normalizeSingleImageField(
+            Slide::all(),
+            'image',
+            'media/slides',
+            ['public/images/gallery', 'public/images'],
+            $stats,
+        );
+
+        $stats['articles'] = $this->normalizeSingleImageField(
+            Article::all(),
+            'image',
+            'media/articles',
+            ['public/images/articles', 'public/images'],
+            $stats,
+        );
+
         $this->moveLooseFiles('public/images/parents', 'media/parents', $stats);
         $this->moveLooseFiles('public/images/kittens', 'media/kittens', $stats);
         $this->moveLooseFiles('public/images/gallery', 'media/gallery', $stats);
@@ -81,6 +101,8 @@ class SyncMediaStorage extends Command
                 ['Kittens updated', $stats['kittens']],
                 ['Gallery images updated', $stats['gallery_images']],
                 ['News posts updated', $stats['news_posts']],
+                ['Slides updated', $stats['slides']],
+                ['Articles updated', $stats['articles']],
                 ['Files moved', $stats['files_moved']],
                 ['Missing files', $stats['missing_files']],
             ]

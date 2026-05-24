@@ -14,23 +14,33 @@ class GalleryImageInfolist
         return $schema
             ->components([
                 TextEntry::make('old_id')
+                    ->label('Внутренний номер')
                     ->numeric()
                     ->placeholder('-'),
                 TextEntry::make('category')
+                    ->label('Категория текстом')
                     ->placeholder('-'),
                 TextEntry::make('title')
+                    ->label('Название')
                     ->placeholder('-'),
                 TextEntry::make('alt')
+                    ->label('Описание картинки для поисковиков')
                     ->placeholder('-'),
-                ImageEntry::make('image_path'),
+                ImageEntry::make('image_path')
+                    ->label('Фото')
+                    ->disk('public'),
                 TextEntry::make('sort_order')
+                    ->label('Приоритет')
                     ->numeric(),
                 IconEntry::make('is_visible')
+                    ->label('Показывать на сайте')
                     ->boolean(),
                 TextEntry::make('created_at')
+                    ->label('Создано')
                     ->dateTime()
                     ->placeholder('-'),
                 TextEntry::make('updated_at')
+                    ->label('Обновлено')
                     ->dateTime()
                     ->placeholder('-'),
             ]);

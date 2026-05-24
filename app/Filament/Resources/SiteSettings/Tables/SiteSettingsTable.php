@@ -14,19 +14,48 @@ class SiteSettingsTable
     {
         return $table
             ->columns([
-                TextColumn::make('group')
+                TextColumn::make('label')
+                    ->label('Название')
                     ->searchable(),
                 TextColumn::make('key')
+                    ->label('Ключ')
+                    ->searchable(),
+                TextColumn::make('value')
+                    ->label('Значение')
+                    ->limit(40)
+                    ->searchable(),
+                TextColumn::make('group')
+                    ->label('Группа')
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'main' => 'Основные',
+                        'contacts' => 'Контакты',
+                        'content' => 'Контент',
+                        'seo' => 'Поисковая оптимизация',
+                        'social' => 'Соцсети',
+                        default => $state ?? '-',
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('type')
-                    ->searchable(),
-                TextColumn::make('label')
+                    ->label('Тип')
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'text' => 'Короткий текст',
+                        'textarea' => 'Большой текст',
+                        'email' => 'Почта',
+                        'boolean' => 'Да / нет',
+                        'url' => 'Ссылка',
+                        'image' => 'Изображение',
+                        default => $state ?? '-',
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
                 TextColumn::make('created_at')
+                    ->label('Создана')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('updated_at')
+                    ->label('Обновлена')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

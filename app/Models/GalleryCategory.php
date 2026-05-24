@@ -4,14 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 #[Fillable([
     'old_id',
+    'parent_id',
     'name',
     'slug',
+    'h1',
     'description',
+    'description_position',
+    'image',
     'meta_title',
     'meta_description',
     'meta_keywords',
@@ -30,6 +35,16 @@ class GalleryCategory extends Model
     public function images(): HasMany
     {
         return $this->hasMany(GalleryImage::class);
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_id');
+    }
+
+    public function children(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_id');
     }
 
     public static function findOrCreateByName(string $name): self

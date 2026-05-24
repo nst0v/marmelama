@@ -15,8 +15,8 @@
         </div>
         <div class="card detail-panel">
             <dl class="meta-list detail-meta">
-                @if($litter->father)<div><dt>Отец</dt><dd>{{ $litter->father->name }}</dd></div>@endif
-                @if($litter->mother)<div><dt>Мама</dt><dd>{{ $litter->mother->name }}</dd></div>@endif
+                @if($litter->father || $litter->father_name)<div><dt>Отец</dt><dd>{{ $litter->father?->name ?: $litter->father_name }}</dd></div>@endif
+                @if($litter->mother || $litter->mother_name)<div><dt>Мама</dt><dd>{{ $litter->mother?->name ?: $litter->mother_name }}</dd></div>@endif
                 <div><dt>Котят</dt><dd>{{ $litter->kittens->count() }}</dd></div>
                 <div><dt>Свободны</dt><dd>{{ $litter->kittens->where('status', 'available')->count() }}</dd></div>
             </dl>

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Article;
+use App\Models\ArticleCategory;
 use App\Models\BreedingCat;
 use App\Models\ContentPage;
 use App\Models\GalleryImage;
@@ -10,6 +12,7 @@ use App\Models\Litter;
 use App\Models\NewsPost;
 use App\Models\Review;
 use App\Models\SiteSetting;
+use App\Models\Slide;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -19,6 +22,13 @@ class SiteController extends Controller
 {
     public function home(): View
     {
+        $heroSlide = Slide::query()
+            ->where('is_visible', true)
+            ->where('placement', 'home')
+            ->orderByDesc('sort_order')
+            ->orderBy('id')
+            ->first();
+
         return view('pages.home', [
             'availableKittens' => Kitten::query()
                 ->where('is_visible', true)
@@ -40,9 +50,10 @@ class SiteController extends Controller
                 ->orderByDesc('id')
                 ->limit(3)
                 ->get(),
-            'heroImage' => $this->firstImage(
+            'heroImage' => $heroSlide?->image ?: $this->firstImage(
                 Kitten::query()->where('is_visible', true)->whereNotNull('images')->latest('id')->first()
             ),
+            'heroSlide' => $heroSlide,
         ]);
     }
 
@@ -199,6 +210,7 @@ class SiteController extends Controller
         return view('pages.gallery', [
             'images' => GalleryImage::query()
                 ->where('is_visible', true)
+                ->where(fn ($query) => $query->whereNull('category')->orWhere('category', '!=', 'slider'))
                 ->orderBy('category')
                 ->orderByDesc('sort_order')
                 ->get(),
@@ -246,6 +258,36 @@ class SiteController extends Controller
                 ->where('status', 'sold')
                 ->orderByDesc('id')
                 ->get(),
+        ]);
+    }
+
+    public function articles(): View
+    {
+        return view('pages.articles.index', [
+            'categories' => ArticleCategory::query()
+                ->withCount('articles')
+                ->orderByDesc('sort_order')
+                ->orderBy('title')
+                ->get(),
+            'articles' => Article::query()
+                ->with('category')
+                ->where('is_visible', true)
+                ->orderByDesc('published_at')
+                ->orderByDesc('sort_order')
+                ->get(),
+        ]);
+    }
+
+    public function article(string $slug): View
+    {
+        return view('pages.articles.show', [
+            'article' => Article::query()
+                ->with('category')
+                ->where('is_visible', true)
+                ->where(fn ($query) => $query
+                    ->where('slug', $slug)
+                    ->when(is_numeric($slug), fn ($query) => $query->orWhere('old_id', (int) $slug)))
+                ->firstOrFail(),
         ]);
     }
 

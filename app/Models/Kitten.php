@@ -30,6 +30,11 @@ use Illuminate\Database\Eloquent\Model;
 ])]
 class Kitten extends Model
 {
+    public function getCoverImageAttribute(): ?string
+    {
+        return is_array($this->images) ? ($this->images[0] ?? null) : null;
+    }
+
     protected function casts(): array
     {
         return [

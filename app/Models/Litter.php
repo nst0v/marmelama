@@ -16,7 +16,11 @@ use Illuminate\Database\Eloquent\Model;
     'father_id',
     'mother_id',
     'father_name',
+    'father_description',
+    'father_image',
     'mother_name',
+    'mother_description',
+    'mother_image',
     'status',
     'description',
     'content',
@@ -29,6 +33,11 @@ use Illuminate\Database\Eloquent\Model;
 ])]
 class Litter extends Model
 {
+    public function getCoverImageAttribute(): ?string
+    {
+        return is_array($this->images) ? ($this->images[0] ?? null) : null;
+    }
+
     protected function casts(): array
     {
         return [

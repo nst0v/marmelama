@@ -15,16 +15,19 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class GalleryImageResource extends Resource
 {
     protected static ?string $model = GalleryImage::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::Camera;
 
-    protected static string|\UnitEnum|null $navigationGroup = 'Контент';
+    protected static string|\UnitEnum|null $navigationGroup = 'Галерея';
 
-    protected static ?string $navigationLabel = 'Галерея';
+    protected static ?int $navigationSort = 2;
+
+    protected static ?string $navigationLabel = 'Фотографии';
 
     protected static ?string $modelLabel = 'фото';
 
@@ -43,6 +46,12 @@ class GalleryImageResource extends Resource
     public static function table(Table $table): Table
     {
         return GalleryImagesTable::configure($table);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->where(fn (Builder $query) => $query->whereNull('category')->orWhere('category', '!=', 'slider'));
     }
 
     public static function getRelations(): array

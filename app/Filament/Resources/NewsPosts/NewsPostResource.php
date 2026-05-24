@@ -20,9 +20,11 @@ class NewsPostResource extends Resource
 {
     protected static ?string $model = NewsPost::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::Newspaper;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Контент';
+
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $navigationLabel = 'Новости';
 
