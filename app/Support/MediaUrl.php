@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Facades\Storage;
+
 class MediaUrl
 {
     public static function url(?string $path): ?string
@@ -14,8 +16,16 @@ class MediaUrl
 
         $normalized = ltrim(str_replace('\\', '/', $path), '/');
 
-        return is_file(storage_path('app/public/'.$normalized))
-            ? asset('storage/'.$normalized)
+        if (str_starts_with($normalized, 'storage/')) {
+            $normalized = substr($normalized, strlen('storage/'));
+        }
+
+        if (str_starts_with($normalized, 'app/public/')) {
+            $normalized = substr($normalized, strlen('app/public/'));
+        }
+
+        return Storage::disk('public')->exists($normalized)
+            ? Storage::disk('public')->url($normalized)
             : null;
     }
 }

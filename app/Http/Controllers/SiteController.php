@@ -13,6 +13,7 @@ use App\Models\NewsPost;
 use App\Models\Review;
 use App\Models\SiteSetting;
 use App\Models\Slide;
+use App\Support\MediaUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -22,12 +23,38 @@ class SiteController extends Controller
 {
     public function home(): View
     {
-        $heroSlide = Slide::query()
+        $heroSlides = Slide::query()
             ->where('is_visible', true)
             ->where('placement', 'home')
             ->orderByDesc('sort_order')
             ->orderBy('id')
-            ->first();
+            ->get()
+            ->map(fn (Slide $slide): array => [
+                'title' => $slide->title,
+                'caption' => $slide->caption,
+                'url' => $slide->url,
+                'alt' => $slide->alt,
+                'image_url' => MediaUrl::url($slide->image),
+            ])
+            ->filter(fn (array $slide): bool => $slide['image_url'] !== null)
+            ->values();
+
+        if ($heroSlides->isEmpty()) {
+            $fallbackImage = $this->firstImage(
+                Kitten::query()->where('is_visible', true)->whereNotNull('images')->latest('id')->first()
+            );
+            $fallbackImageUrl = MediaUrl::url($fallbackImage);
+
+            if ($fallbackImageUrl !== null) {
+                $heroSlides = collect([[
+                    'title' => 'Бурманские котята МарМелАма',
+                    'caption' => 'Питомник европейской бурмы в Омске. Поможем выбрать котенка по характеру, расскажем об уходе и организуем доставку по России.',
+                    'url' => route('kittens.index'),
+                    'alt' => 'Бурманский котенок питомника МарМелАма',
+                    'image_url' => $fallbackImageUrl,
+                ]]);
+            }
+        }
 
         return view('pages.home', [
             'availableKittens' => Kitten::query()
@@ -50,10 +77,7 @@ class SiteController extends Controller
                 ->orderByDesc('id')
                 ->limit(3)
                 ->get(),
-            'heroImage' => $heroSlide?->image ?: $this->firstImage(
-                Kitten::query()->where('is_visible', true)->whereNotNull('images')->latest('id')->first()
-            ),
-            'heroSlide' => $heroSlide,
+            'heroSlides' => $heroSlides,
         ]);
     }
 

@@ -4,29 +4,67 @@
 @section('description', 'Бурманские котята из питомника МарМелАма в Омске. Свободные котята, пометы, производители, отзывы и доставка по России.')
 
 @section('content')
-@php($heroImageUrl = \App\Support\MediaUrl::url($heroImage))
 <section class="hero">
-    <div class="container hero-grid">
-        <div class="hero-copy">
-            <p class="eyebrow">Питомник европейской бурмы</p>
-            <h1>Бурманские котята из питомника МарМелАма</h1>
-            <p class="lead">Питомник европейской бурмы в Омске. Поможем выбрать котенка по характеру, расскажем об уходе и организуем доставку по России.</p>
-            <div class="button-row">
-                <a class="button" href="#available">Смотреть свободных котят</a>
-                <a class="button secondary" href="{{ $site['max'] }}">Написать в {{ $site['max_label'] }}</a>
-            </div>
-            <div class="badge-row">
-                <span class="badge">Европейская бурма</span>
-                <span class="badge">Социализированные котята</span>
-                <span class="badge">Доставка по России</span>
-                <span class="badge">Поддержка владельцев</span>
-            </div>
-        </div>
-        <div class="hero-media">
-            @if($heroImageUrl)
-                <img src="{{ $heroImageUrl }}" alt="{{ $heroSlide?->alt ?: 'Бурманский котенок питомника МарМелАма' }}">
-            @else
-                <span class="image-placeholder hero-placeholder">МарМелАма</span>
+    <div class="container">
+        <div class="hero-showcase{{ $heroSlides->count() <= 1 ? ' is-single' : '' }}" data-hero-slider>
+            @forelse($heroSlides as $slide)
+                <article class="hero-slide{{ $loop->first ? ' is-active' : '' }}" data-hero-slide aria-hidden="{{ $loop->first ? 'false' : 'true' }}">
+                    <img
+                        src="{{ $slide['image_url'] }}"
+                        alt="{{ $slide['alt'] ?: 'Бурманский котенок питомника МарМелАма' }}"
+                        loading="{{ $loop->first ? 'eager' : 'lazy' }}"
+                        decoding="async"
+                    >
+                    <div class="hero-slide-content">
+                        <p class="eyebrow">Питомник европейской бурмы</p>
+                        @if($loop->first)
+                            <h1>{{ $slide['title'] ?: 'МарМелАма: бурманские котята с характером' }}</h1>
+                        @else
+                            <h2>{{ $slide['title'] ?: 'Бурманские котята МарМелАма' }}</h2>
+                        @endif
+                        <div class="hero-slide-text">
+                            @if($slide['caption'])
+                                {!! $slide['caption'] !!}
+                            @else
+                                <p>Выращиваем котят рядом с человеком, помогаем выбрать малыша по темпераменту и сопровождаем семьи после переезда.</p>
+                            @endif
+                        </div>
+                        <div class="button-row hero-actions">
+                            <a class="button" href="#available">Выбрать котенка</a>
+                            <a class="button secondary" href="{{ $site['max'] }}">Написать в {{ $site['max_label'] }}</a>
+                            @if($slide['url'])
+                                <a class="button ghost" href="{{ $slide['url'] }}">Подробнее</a>
+                            @endif
+                        </div>
+                    </div>
+                </article>
+            @empty
+                <article class="hero-slide hero-slide--empty is-active" data-hero-slide aria-hidden="false">
+                    <span class="image-placeholder hero-placeholder">МарМелАма</span>
+                    <div class="hero-slide-content">
+                        <p class="eyebrow">Питомник европейской бурмы</p>
+                        <h1>МарМелАма: бурманские котята с характером</h1>
+                        <div class="hero-slide-text">
+                            <p>Поможем выбрать котенка, расскажем об уходе и организуем доставку по России.</p>
+                        </div>
+                        <div class="button-row hero-actions">
+                            <a class="button" href="#available">Выбрать котенка</a>
+                            <a class="button secondary" href="{{ $site['max'] }}">Написать в {{ $site['max_label'] }}</a>
+                        </div>
+                    </div>
+                </article>
+            @endforelse
+
+            @if($heroSlides->count() > 1)
+                <div class="hero-controls" aria-label="Управление слайдером">
+                    <button class="hero-control" type="button" data-hero-prev aria-label="Предыдущий слайд"><span aria-hidden="true">&larr;</span></button>
+                    <button class="hero-control" type="button" data-hero-next aria-label="Следующий слайд"><span aria-hidden="true">&rarr;</span></button>
+                </div>
+                <div class="hero-dots" aria-label="Слайды">
+                    @foreach($heroSlides as $slide)
+                        <button class="hero-dot{{ $loop->first ? ' is-active' : '' }}" type="button" data-hero-dot="{{ $loop->index }}" aria-label="Показать слайд {{ $loop->iteration }}" aria-current="{{ $loop->first ? 'true' : 'false' }}"></button>
+                    @endforeach
+                </div>
             @endif
         </div>
     </div>
