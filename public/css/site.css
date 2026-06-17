@@ -81,8 +81,9 @@ p { margin: 0; }
 .button.full { width: 100%; }
 .button.small { min-height: 40px; padding: 10px 16px; font-size: 14px; }
 .card { border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: var(--shadow-soft); }
-.page-hero { padding: 74px 0 46px; }
-.page-hero .lead { margin-top: 18px; }
+.page-hero { padding: 20px 0 12px; }
+.page-hero h1 { font-size: clamp(34px, 4vw, 52px); }
+.page-hero .lead { margin-top: 10px; font-size: 17px; line-height: 1.45; }
 .badge-row, .filter-tabs { display: flex; flex-wrap: wrap; gap: 10px; }
 .badge, .filter-tabs a {
   display: inline-flex;
@@ -98,6 +99,24 @@ p { margin: 0; }
 }
 .filter-tabs { margin-top: 26px; }
 .filter-tabs a.active { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.kittens-hero-inner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+}
+.kittens-hero .filter-tabs {
+  flex: 0 1 560px;
+  justify-content: flex-end;
+  margin-top: 0;
+}
+.kittens-list-section { padding-top: 10px; }
+.kittens-list-section.reveal-item,
+.kittens-list-section .kitten-card.reveal-item {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0ms !important;
+}
 .status { display: inline-flex; min-height: 30px; align-items: center; justify-content: center; border-radius: 999px; padding: 5px 11px; font-size: 13px; font-weight: 800; }
 .status.available { background: var(--color-available-bg); color: var(--color-available-text); }
 .status.reserved { background: var(--color-reserved-bg); color: var(--color-reserved-text); }
@@ -311,7 +330,13 @@ p { margin: 0; }
 @media (max-width: 700px) {
   .container { width: min(100% - 24px, var(--container)); }
   .section { padding: 58px 0; }
-  .page-hero { padding: 46px 0 28px; }
+  .page-hero { padding: 16px 0 8px; }
+  .page-hero h1 { font-size: 34px; }
+  .page-hero .lead { margin-top: 8px; font-size: 15px; }
+  .kittens-hero-inner { display: grid; gap: 12px; }
+  .kittens-hero .filter-tabs { justify-content: flex-start; gap: 8px; }
+  .kittens-hero .filter-tabs a { min-height: 32px; padding: 5px 10px; font-size: 13px; }
+  .kittens-list-section { padding-top: 10px; }
   h1, .display-title { font-size: 44px; }
   h2 { font-size: 34px; }
   .grid-4, .grid-3, .grid-2, .steps, .hero-grid, .detail-grid, .contact-grid, .footer-grid, .gallery-page-grid { grid-template-columns: 1fr; }

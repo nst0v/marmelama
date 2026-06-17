@@ -3,11 +3,12 @@
 @section('title', 'Котята бурмы. Продажа - МарМелАма')
 
 @section('content')
-<section class="page-hero">
-    <div class="container">
-        <p class="eyebrow">Каталог</p>
-        <h1>Котята бурмы. Продажа</h1>
-        <p class="lead">Котята, которые сейчас доступны для бронирования в питомнике МарМелАма.</p>
+<section class="page-hero kittens-hero">
+    <div class="container kittens-hero-inner">
+        <div>
+            <p class="eyebrow">Каталог</p>
+            <h1>Котята бурмы. Продажа</h1>
+        </div>
         <div class="filter-tabs">
             @foreach(['all' => 'Все', 'male' => 'Мальчики', 'female' => 'Девочки', 'available' => 'Свободные', 'reserved' => 'Бронь', 'sold' => 'Архив'] as $key => $label)
                 <a class="{{ $filter === $key ? 'active' : '' }}" href="{{ route('kittens.index', ['filter' => $key]) }}">{{ $label }}</a>
@@ -16,7 +17,7 @@
     </div>
 </section>
 
-<section class="section section-tight">
+<section class="section section-tight kittens-list-section">
     <div class="container">
         <div class="grid grid-3">
             @forelse($kittens as $kitten)
