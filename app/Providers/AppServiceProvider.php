@@ -39,9 +39,10 @@ class AppServiceProvider extends ServiceProvider
                 'callback_enabled' => (bool) $settings->get('zvonok', true),
                 'awards_enabled' => (bool) $settings->get('nagrada', false),
                 'vk' => 'https://vk.com/marmelama.omsk',
-                'instagram' => 'https://instagram.com/marmelama.omsk',
-                'max' => 'https://max.ru',
+                'max' => 'https://max.ru/u/f9LHodD0cOLonF7huHOgSikdjxmHiKhHhZntjhsg1BAWXZG3I4hzBkl4RtY',
                 'max_label' => 'MAX',
+                'telegram' => 'https://t.me/@MarMelAma_Omsk',
+                'whatsapp' => 'https://wa.me/+79136453118',
             ]);
         });
     }

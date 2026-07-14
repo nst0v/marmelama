@@ -21,7 +21,9 @@
 
     @include('partials.footer')
 
-    <a class="floating-messenger" href="{{ $site['max'] }}" aria-label="Написать в {{ $site['max_label'] }}">{{ $site['max_label'] }}</a>
+    <a class="floating-messenger" href="{{ $site['max'] }}" aria-label="Написать в {{ $site['max_label'] }}">
+        <img src="{{ asset('images/messengers/max.png') }}" alt="" width="192" height="192" aria-hidden="true">
+    </a>
     <script src="{{ asset('js/site.js') }}" defer></script>
 </body>
 </html>

@@ -7,12 +7,15 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Str;
 
 class KittenForm
 {
@@ -32,11 +35,19 @@ class KittenForm
                             TextInput::make('name')
                                 ->label('Имя')
                                 ->required()
-                                ->maxLength(255),
+                                ->maxLength(255)
+                                ->live(onBlur: true)
+                                ->afterStateUpdated(function (Get $get, Set $set, ?string $state): void {
+                                    if (blank($get('slug'))) {
+                                        $set('slug', Str::slug($state ?? ''));
+                                    }
+                                }),
                             TextInput::make('slug')
                                 ->label('ЧПУ')
                                 ->required()
-                                ->maxLength(255),
+                                ->maxLength(255)
+                                ->unique(ignoreRecord: true)
+                                ->helperText('Заполнится из имени автоматически.'),
                             Select::make('sex')
                                 ->label('Пол')
                                 ->options([
@@ -84,6 +95,7 @@ class KittenForm
                     ->schema([
                         Textarea::make('description')
                             ->label('Краткое описание')
+                            ->helperText('Показывается в карточке. Лучше 1–2 коротких предложения.')
                             ->rows(4)
                             ->columnSpanFull(),
                         RichEditor::make('content')

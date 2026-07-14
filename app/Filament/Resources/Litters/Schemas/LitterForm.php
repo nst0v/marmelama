@@ -6,12 +6,15 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Str;
 
 class LitterForm
 {
@@ -26,13 +29,24 @@ class LitterForm
                             TextInput::make('title')
                                 ->label('Название')
                                 ->required()
-                                ->maxLength(255),
+                                ->maxLength(255)
+                                ->helperText('Короткое смысловое название. Дату, литеру и количество котят сайт покажет отдельно.')
+                                ->live(onBlur: true)
+                                ->afterStateUpdated(function (Get $get, Set $set, ?string $state): void {
+                                    if (blank($get('slug'))) {
+                                        $set('slug', Str::slug($state ?? ''));
+                                    }
+                                }),
                             TextInput::make('slug')
                                 ->label('ЧПУ')
                                 ->required()
-                                ->maxLength(255),
+                                ->maxLength(255)
+                                ->unique(ignoreRecord: true)
+                                ->helperText('Заполнится из названия автоматически.'),
                             TextInput::make('letter')
-                                ->label('Литера'),
+                                ->label('Литера')
+                                ->maxLength(20)
+                                ->helperText('Например: N. На сайте будет показано «Помёт N».'),
                             DatePicker::make('born_on')
                                 ->label('Дата рождения'),
                             Select::make('status')
@@ -44,7 +58,8 @@ class LitterForm
                                     'archive' => 'Архив',
                                 ])
                                 ->required()
-                                ->default('available'),
+                                ->default('available')
+                                ->helperText('«Есть свободные» показывается, когда в помёте опубликован хотя бы один свободный котёнок.'),
                             Select::make('father_id')
                                 ->label('Отец из производителей')
                                 ->relationship('father', 'name')
@@ -96,6 +111,7 @@ class LitterForm
                     ->schema([
                         Textarea::make('description')
                             ->label('Краткое описание')
+                            ->helperText('Не повторяйте дату и количество котят — они выводятся автоматически.')
                             ->rows(4)
                             ->columnSpanFull(),
                         RichEditor::make('content')

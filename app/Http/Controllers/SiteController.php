@@ -13,6 +13,7 @@ use App\Models\NewsPost;
 use App\Models\Review;
 use App\Models\SiteSetting;
 use App\Models\Slide;
+use App\Support\BurmeseColors;
 use App\Support\MediaUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,9 +31,6 @@ class SiteController extends Controller
             ->orderBy('id')
             ->get()
             ->map(fn (Slide $slide): array => [
-                'title' => $slide->title,
-                'caption' => $slide->caption,
-                'url' => $slide->url,
                 'alt' => $slide->alt,
                 'image_url' => MediaUrl::url($slide->image),
             ])
@@ -47,9 +45,6 @@ class SiteController extends Controller
 
             if ($fallbackImageUrl !== null) {
                 $heroSlides = collect([[
-                    'title' => 'Бурманские котята МарМелАма',
-                    'caption' => 'Питомник европейской бурмы в Омске. Поможем выбрать котенка по характеру, расскажем об уходе и организуем доставку по России.',
-                    'url' => route('kittens.index'),
                     'alt' => 'Бурманский котенок питомника МарМелАма',
                     'image_url' => $fallbackImageUrl,
                 ]]);
@@ -58,21 +53,16 @@ class SiteController extends Controller
 
         return view('pages.home', [
             'availableKittens' => Kitten::query()
+                ->with('litter')
                 ->where('is_visible', true)
                 ->where('status', 'available')
                 ->orderByDesc('sort_order')
                 ->orderByDesc('id')
                 ->limit(6)
                 ->get(),
-            'parents' => BreedingCat::query()
-                ->where('is_visible', true)
-                ->where('is_active', true)
-                ->orderByDesc('sort_order')
-                ->orderBy('name')
-                ->limit(4)
-                ->get(),
             'reviews' => Review::query()
                 ->where('is_visible', true)
+                ->orderByDesc('sort_order')
                 ->orderByDesc('reviewed_at')
                 ->orderByDesc('id')
                 ->limit(3)
@@ -83,7 +73,48 @@ class SiteController extends Controller
 
     public function kittens(Request $request): View
     {
-        $filter = $request->query('filter', 'all');
+        $status = is_string($request->query('status')) ? $request->query('status') : null;
+        $sex = is_string($request->query('sex')) ? $request->query('sex') : null;
+
+        // Keep old catalogue links working while the new filters are rolled out.
+        if ($status === null && is_string($request->query('filter'))) {
+            $legacyFilter = $request->query('filter');
+
+            if (in_array($legacyFilter, ['available', 'reserved', 'sold', 'all'], true)) {
+                $status = $legacyFilter;
+            } elseif (in_array($legacyFilter, ['male', 'female'], true)) {
+                $status = 'all';
+                $sex ??= $legacyFilter;
+            }
+        }
+
+        $status = in_array($status, ['available', 'reserved', 'sold', 'all'], true)
+            ? $status
+            : 'available';
+        $sex = in_array($sex, ['male', 'female'], true) ? $sex : null;
+
+        $visibleKittens = Kitten::query()->where('is_visible', true);
+        $statusCounts = (clone $visibleKittens)
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->map(fn ($total): int => (int) $total);
+        $statusCounts->put('all', $statusCounts->sum());
+
+        $colorValues = (clone $visibleKittens)
+            ->whereNotNull('color')
+            ->where('color', '!=', '')
+            ->distinct()
+            ->pluck('color')
+            ->groupBy(fn (string $color): string => BurmeseColors::swatchKey($color))
+            ->except('unknown');
+        $colorOptions = $colorValues
+            ->keys()
+            ->mapWithKeys(fn (string $key): array => [$key => BurmeseColors::filterLabel($key)])
+            ->sort();
+        $color = is_string($request->query('color')) && $colorValues->has($request->query('color'))
+            ? $request->query('color')
+            : null;
 
         $query = Kitten::query()
             ->with('litter')
@@ -92,18 +123,25 @@ class SiteController extends Controller
             ->orderByDesc('sort_order')
             ->orderByDesc('id');
 
-        match ($filter) {
-            'male' => $query->where('sex', 'male'),
-            'female' => $query->where('sex', 'female'),
-            'available' => $query->where('status', 'available'),
-            'reserved' => $query->where('status', 'reserved'),
-            'sold' => $query->where('status', 'sold'),
-            default => null,
-        };
+        if ($status !== 'all') {
+            $query->where('status', $status);
+        }
+
+        if ($sex !== null) {
+            $query->where('sex', $sex);
+        }
+
+        if ($color !== null) {
+            $query->whereIn('color', $colorValues->get($color)->all());
+        }
 
         return view('pages.kittens.index', [
-            'kittens' => $query->get(),
-            'filter' => $filter,
+            'kittens' => $query->paginate(12)->withQueryString(),
+            'status' => $status,
+            'sex' => $sex,
+            'color' => $color,
+            'statusCounts' => $statusCounts,
+            'colorOptions' => $colorOptions,
         ]);
     }
 
@@ -118,6 +156,7 @@ class SiteController extends Controller
         return view('pages.kittens.show', [
             'kitten' => $kitten,
             'otherKittens' => Kitten::query()
+                ->with('litter')
                 ->where('is_visible', true)
                 ->where('status', 'available')
                 ->whereKeyNot($kitten->id)
@@ -126,22 +165,144 @@ class SiteController extends Controller
         ]);
     }
 
-    public function litters(): View
+    public function litters(Request $request): View
     {
+        $requestedStatus = $request->query('status', 'all');
+        $status = is_string($requestedStatus)
+            && in_array($requestedStatus, ['all', 'available', 'planned', 'reserved', 'archive'], true)
+                ? $requestedStatus
+                : 'all';
+
+        $requestedSort = $request->query('sort', 'newest');
+        $sort = is_string($requestedSort) && in_array($requestedSort, ['newest', 'oldest'], true)
+            ? $requestedSort
+            : 'newest';
+
+        $requestedSearch = $request->query('q', '');
+        $search = is_string($requestedSearch)
+            ? mb_substr(trim($requestedSearch), 0, 80)
+            : '';
+
+        $years = Litter::query()
+            ->where('is_visible', true)
+            ->whereNotNull('born_on')
+            ->orderByDesc('born_on')
+            ->get(['born_on'])
+            ->map(fn (Litter $litter): int => (int) $litter->born_on->format('Y'))
+            ->unique()
+            ->values();
+
+        $requestedYear = $request->query('year');
+        $year = is_string($requestedYear) && preg_match('/^\d{4}$/', $requestedYear)
+            ? (int) $requestedYear
+            : null;
+        $year = $year !== null && $years->containsStrict($year) ? $year : null;
+
+        $parents = BreedingCat::query()
+            ->where('is_visible', true)
+            ->where(fn ($query) => $query
+                ->whereHas('fatherLitters', fn ($litters) => $litters->where('is_visible', true))
+                ->orWhereHas('motherLitters', fn ($litters) => $litters->where('is_visible', true)))
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $requestedParent = $request->query('parent');
+        $parentId = is_string($requestedParent) && ctype_digit($requestedParent)
+            ? (int) $requestedParent
+            : null;
+        $parentId = $parentId !== null && $parents->contains('id', $parentId) ? $parentId : null;
+
+        $query = Litter::query()
+            ->with([
+                'father',
+                'mother',
+                'kittens' => fn ($query) => $query
+                    ->where('is_visible', true)
+                    ->orderByDesc('sort_order')
+                    ->orderByDesc('id'),
+            ])
+            ->where('is_visible', true);
+
+        match ($status) {
+            'available' => $query
+                ->where('status', 'available')
+                ->whereHas('kittens', fn ($kittens) => $kittens
+                    ->where('is_visible', true)
+                    ->where('status', 'available')),
+            'planned' => $query->where('status', 'planned'),
+            'reserved' => $query->where('status', 'reserved'),
+            'archive' => $query->where(fn ($litters) => $litters
+                ->where('status', 'archive')
+                ->orWhere(fn ($availableWithoutKittens) => $availableWithoutKittens
+                    ->where('status', 'available')
+                    ->whereDoesntHave('kittens', fn ($kittens) => $kittens
+                        ->where('is_visible', true)
+                        ->where('status', 'available')))),
+            default => null,
+        };
+
+        if ($year !== null) {
+            $query->whereYear('born_on', $year);
+        }
+
+        if ($parentId !== null) {
+            $query->where(fn ($litters) => $litters
+                ->where('father_id', $parentId)
+                ->orWhere('mother_id', $parentId));
+        }
+
+        if ($search !== '') {
+            $term = '%'.$search.'%';
+
+            $query->where(fn ($litters) => $litters
+                ->where('letter', 'like', $term)
+                ->orWhere('title', 'like', $term)
+                ->orWhere('father_name', 'like', $term)
+                ->orWhere('mother_name', 'like', $term)
+                ->orWhereHas('father', fn ($parent) => $parent->where('name', 'like', $term))
+                ->orWhereHas('mother', fn ($parent) => $parent->where('name', 'like', $term)));
+        }
+
+        $query->orderByRaw('case when born_on is null then 1 else 0 end');
+
+        if ($sort === 'oldest') {
+            $query->orderBy('born_on')->orderByDesc('sort_order')->orderBy('id');
+        } else {
+            $query->orderByDesc('born_on')->orderByDesc('sort_order')->orderByDesc('id');
+        }
+
+        $filters = [
+            'status' => $status,
+            'q' => $search,
+            'year' => $year,
+            'parent' => $parentId,
+            'sort' => $sort,
+        ];
+
         return view('pages.litters.index', [
-            'litters' => Litter::query()
-                ->with('father', 'mother', 'kittens')
-                ->where('is_visible', true)
-                ->orderByDesc('born_on')
-                ->orderByDesc('sort_order')
-                ->get(),
+            'litters' => $query->paginate(6)->withQueryString()->fragment('litter-results'),
+            'filters' => $filters,
+            'years' => $years,
+            'parents' => $parents,
+            'hasActiveFilters' => $status !== 'all'
+                || $search !== ''
+                || $year !== null
+                || $parentId !== null
+                || $sort !== 'newest',
         ]);
     }
 
     public function litter(string $slug): View
     {
         $litter = Litter::query()
-            ->with('father', 'mother', 'kittens')
+            ->with([
+                'father',
+                'mother',
+                'kittens' => fn ($query) => $query
+                    ->where('is_visible', true)
+                    ->orderByDesc('sort_order')
+                    ->orderByDesc('id'),
+            ])
             ->where('slug', $slug)
             ->where('is_visible', true)
             ->firstOrFail();
@@ -178,6 +339,7 @@ class SiteController extends Controller
         return view('pages.parents.show', [
             'parent' => $parent,
             'litters' => Litter::query()
+                ->with(['kittens' => fn ($query) => $query->where('is_visible', true)])
                 ->where('is_visible', true)
                 ->where(fn ($query) => $query
                     ->where('father_id', $parent->id)
@@ -192,9 +354,10 @@ class SiteController extends Controller
         return view('pages.reviews', [
             'reviews' => Review::query()
                 ->where('is_visible', true)
+                ->orderByDesc('sort_order')
                 ->orderByDesc('reviewed_at')
                 ->orderByDesc('id')
-                ->get(),
+                ->paginate(10),
         ]);
     }
 

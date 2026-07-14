@@ -2,36 +2,48 @@
     $image = is_array($kitten->images) ? ($kitten->images[0] ?? null) : null;
     $imageUrl = \App\Support\MediaUrl::url($image);
     $status = [
-        'available' => ['Свободен', 'available'],
-        'reserved' => ['Бронь', 'reserved'],
-        'sold' => ['Продан', 'sold'],
+        'available' => ['Ищет семью', 'available'],
+        'reserved' => ['Забронирован', 'reserved'],
+        'sold' => ['Уже нашли хозяев', 'sold'],
     ][$kitten->status] ?? ['Статус уточняется', 'sold'];
-    $sex = ['male' => 'Мальчик', 'female' => 'Девочка', 'unknown' => null][$kitten->sex] ?? null;
+    $displayName = $kitten->display_name;
+    $litterName = $kitten->litter?->is_visible
+        ? ($kitten->litter->letter ? 'Помёт «'.$kitten->litter->letter.'»' : $kitten->litter->title)
+        : null;
+    $birthLabel = $kitten->born_on
+        ? ($kitten->sex === 'female' ? 'Родилась ' : ($kitten->sex === 'male' ? 'Родился ' : 'Дата рождения ')).$kitten->born_on->isoFormat('D MMMM YYYY')
+        : null;
 @endphp
 
-<article class="kitten-card card">
-    <a class="card-media" href="{{ route('kittens.show', $kitten->slug) }}">
+<article class="kitten-card">
+    <a class="kitten-card-media" href="{{ route('kittens.show', $kitten->slug) }}" aria-label="Открыть анкету котёнка {{ $displayName }}">
         @if($imageUrl)
-            <img src="{{ $imageUrl }}" alt="{{ $kitten->image_alt ?: $kitten->name }}">
+            <img src="{{ $imageUrl }}" alt="{{ $kitten->image_alt ?: $displayName }}" @if($kitten->image_title) title="{{ $kitten->image_title }}" @endif loading="{{ ($eager ?? false) ? 'eager' : 'lazy' }}" @if($eager ?? false) fetchpriority="high" @endif decoding="async">
         @else
-            <span class="image-placeholder">МарМелАма</span>
+            <span class="kitten-card-placeholder">МарМелАма</span>
         @endif
-        <span class="status {{ $status[1] }}">{{ $status[0] }}</span>
+
+        <span class="kitten-card-status {{ $status[1] }}">{{ $status[0] }}</span>
     </a>
-    <div class="card-body">
-        <h3><a href="{{ route('kittens.show', $kitten->slug) }}">{{ $kitten->name }}</a></h3>
-        <dl class="meta-list">
-            @if($sex)<div><dt>Пол</dt><dd>{{ $sex }}</dd></div>@endif
-            @if($kitten->color)<div><dt>Окрас</dt><dd>{{ $kitten->color }}</dd></div>@endif
-            @if($kitten->litter)<div><dt>Помет</dt><dd>{{ $kitten->litter->letter ?: $kitten->litter->title }}</dd></div>@endif
-            @if($kitten->born_on)<div><dt>Дата рождения</dt><dd>{{ $kitten->born_on->format('d.m.Y') }}</dd></div>@endif
-        </dl>
-        @if($kitten->description)
-            <div class="card-text">{!! \Illuminate\Support\Str::limit(strip_tags($kitten->description), 120) !!}</div>
+
+    <div class="kitten-card-content">
+        <header class="kitten-card-heading">
+            <h2><a href="{{ route('kittens.show', $kitten->slug) }}">{{ $displayName }}</a></h2>
+            @include('partials.kitten-attributes', ['kitten' => $kitten, 'attributesClass' => 'kitten-card-attributes'])
+        </header>
+
+        @if($birthLabel || $litterName)
+            <p class="kitten-card-details">
+                @if($birthLabel)<span>{{ $birthLabel }}</span>@endif
+                @if($litterName)<span>{{ $litterName }}</span>@endif
+            </p>
         @endif
-        <div class="card-actions">
-            <a class="button secondary full" href="{{ route('kittens.show', $kitten->slug) }}">Подробнее</a>
-            <a class="button full" href="{{ route('contacts') }}?kitten={{ urlencode($kitten->name) }}#contact-form">Узнать цену</a>
-        </div>
+
+        <footer class="kitten-card-footer">
+            <a class="kitten-card-action" href="{{ route('kittens.show', $kitten->slug) }}">
+                Смотреть анкету
+                <span aria-hidden="true">→</span>
+            </a>
+        </footer>
     </div>
 </article>

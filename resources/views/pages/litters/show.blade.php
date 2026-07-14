@@ -3,15 +3,27 @@
 @section('title', $litter->title.' - МарМелАма')
 
 @section('content')
+@php
+    $pageTitle = $litter->letter ? 'Помёт '.$litter->letter : $litter->title;
+    $rawTitle = \App\Support\RichText::plain($litter->title);
+    $titleLooksGenerated = (bool) preg_match('/\d{2}\.\d{2}\.\d{4}/u', $rawTitle)
+        || \Illuminate\Support\Str::contains(\Illuminate\Support\Str::lower($rawTitle), ['помет', 'помёт']);
+    $subtitle = $litter->letter && ! $titleLooksGenerated && $rawTitle !== $pageTitle ? $rawTitle : null;
+    $description = \App\Support\RichText::plain($litter->description);
+    $content = \App\Support\RichText::forPage($litter->content, $pageTitle, removeLeadingHeading: true);
+@endphp
+
 <section class="page-hero">
     <div class="container split">
         <div>
-            <p class="eyebrow">Помет {{ $litter->letter }}</p>
-            <h1>{{ $litter->title }}</h1>
-            <p class="lead">
-                @if($litter->born_on)Дата рождения: {{ $litter->born_on->format('d.m.Y') }}.@endif
-                @if($litter->description){!! strip_tags($litter->description) !!}@endif
-            </p>
+            <h1>{{ $pageTitle }}</h1>
+            @if($litter->born_on || $subtitle || $description)
+                <p class="lead">
+                    @if($litter->born_on)Дата рождения: {{ $litter->born_on->format('d.m.Y') }}.@endif
+                    @if($subtitle) {{ $subtitle }}@endif
+                    @if($description) {{ $description }}@endif
+                </p>
+            @endif
         </div>
         <div class="card detail-panel">
             <dl class="meta-list detail-meta">
@@ -25,17 +37,17 @@
     </div>
 </section>
 
-@if($litter->content)
+@if($content)
 <section class="section section-tight">
-    <div class="container narrow prose-card card">
-        {!! $litter->content !!}
+    <div class="container narrow prose-card rich-text card">
+        {!! $content !!}
     </div>
 </section>
 @endif
 
 <section class="section section--soft">
     <div class="container">
-        <div class="section-title"><p class="eyebrow">Котята</p><h2>Котята этого помета</h2></div>
+        <div class="section-title"><h2>Котята этого помёта</h2></div>
         <div class="grid grid-3">
             @forelse($litter->kittens as $kitten)
                 @include('partials.kitten-card', ['kitten' => $kitten])

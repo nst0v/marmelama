@@ -1,4 +1,4 @@
-<section class="section">
+<section class="section cta-section">
     <div class="container cta-card">
         <div>
             <p class="eyebrow">Связаться</p>

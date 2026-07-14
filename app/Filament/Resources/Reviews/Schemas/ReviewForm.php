@@ -4,8 +4,8 @@ namespace App\Filament\Resources\Reviews\Schemas;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -25,13 +25,16 @@ class ReviewForm
                                 ->label('Дата'),
                             TextInput::make('author_name')
                                 ->label('Автор')
-                                ->required(),
+                                ->required()
+                                ->maxLength(255),
                             TextInput::make('phone')
                                 ->label('Телефон')
-                                ->tel(),
+                                ->tel()
+                                ->maxLength(255),
                             TextInput::make('email')
                                 ->label('Почта')
-                                ->email(),
+                                ->email()
+                                ->maxLength(255),
                             TextInput::make('sort_order')
                                 ->label('Приоритет')
                                 ->required()
@@ -40,6 +43,7 @@ class ReviewForm
                             Textarea::make('body')
                                 ->label('Текст отзыва')
                                 ->required()
+                                ->helperText('На странице отзыв выводится полностью; абзацы и длинный текст поддерживаются.')
                                 ->rows(5)
                                 ->columnSpanFull(),
                             Textarea::make('response')

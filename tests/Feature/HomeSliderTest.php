@@ -65,10 +65,12 @@ class HomeSliderTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('data-hero-slider', false);
-        $response->assertSee('Первый видимый слайд');
-        $response->assertSee('Второй видимый слайд');
         $response->assertSee('visible-a.jpg');
         $response->assertSee('visible-b.jpg');
+        $response->assertSee('data-hero-dot', false);
+        $response->assertDontSee('data-hero-prev', false);
+        $response->assertDontSee('data-hero-next', false);
+        $response->assertDontSee('Главный экран питомника');
         $response->assertDontSee('Скрытый слайд');
         $response->assertDontSee('Слайд другой страницы');
         $response->assertDontSee('Слайд без файла');
