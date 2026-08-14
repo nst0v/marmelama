@@ -2,8 +2,10 @@
 
 namespace App\Filament\Resources\Litters\Schemas;
 
+use App\Models\Litter;
+use Carbon\CarbonImmutable;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -12,9 +14,10 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
+use Throwable;
 
 class LitterForm
 {
@@ -22,86 +25,78 @@ class LitterForm
     {
         return $schema
             ->components([
-                Section::make('Помет')
-                    ->description('Название, литера, родители, статус, приоритет и публикация.')
+                Section::make('Помёт')
+                    ->description('Дата рождения, родители, статус и публикация помёта.')
                     ->schema([
                         Grid::make(2)->schema([
-                            TextInput::make('title')
-                                ->label('Название')
-                                ->required()
-                                ->maxLength(255)
-                                ->helperText('Короткое смысловое название. Дату, литеру и количество котят сайт покажет отдельно.')
-                                ->live(onBlur: true)
-                                ->afterStateUpdated(function (Get $get, Set $set, ?string $state): void {
-                                    if (blank($get('slug'))) {
-                                        $set('slug', Str::slug($state ?? ''));
-                                    }
-                                }),
-                            TextInput::make('slug')
-                                ->label('ЧПУ')
-                                ->required()
-                                ->maxLength(255)
-                                ->unique(ignoreRecord: true)
-                                ->helperText('Заполнится из названия автоматически.'),
                             TextInput::make('letter')
                                 ->label('Литера')
+                                ->required()
                                 ->maxLength(20)
                                 ->helperText('Например: N. На сайте будет показано «Помёт N».'),
                             DatePicker::make('born_on')
                                 ->label('Дата рождения'),
+                            TextInput::make('title')
+                                ->label('Короткое название')
+                                ->maxLength(255)
+                                ->helperText('Необязательно. Если оставить пустым, название составится из литеры и даты.')
+                                ->dehydrateStateUsing(fn (?string $state, Get $get): string => filled($state)
+                                    ? trim($state)
+                                    : self::generatedTitle($get('letter'), $get('born_on')))
+                                ->columnSpanFull(),
+                            Hidden::make('slug')
+                                ->dehydrateStateUsing(function (?string $state, Get $get): string {
+                                    if (filled($state)) {
+                                        return $state;
+                                    }
+
+                                    $title = filled($get('title'))
+                                        ? (string) $get('title')
+                                        : self::generatedTitle($get('letter'), $get('born_on'));
+
+                                    return self::uniqueSlug($title);
+                                }),
+                            Select::make('father_id')
+                                ->label('Отец')
+                                ->relationship(
+                                    name: 'father',
+                                    titleAttribute: 'name',
+                                    modifyQueryUsing: fn (Builder $query): Builder => $query->where('sex', 'male'),
+                                )
+                                ->searchable()
+                                ->preload()
+                                ->live(),
+                            Select::make('mother_id')
+                                ->label('Мать')
+                                ->relationship(
+                                    name: 'mother',
+                                    titleAttribute: 'name',
+                                    modifyQueryUsing: fn (Builder $query): Builder => $query->where('sex', 'female'),
+                                )
+                                ->searchable()
+                                ->preload()
+                                ->live(),
+                            TextInput::make('father_name')
+                                ->label('Отец, если его нет в списке')
+                                ->maxLength(255)
+                                ->visible(fn (Get $get): bool => blank($get('father_id'))),
+                            TextInput::make('mother_name')
+                                ->label('Мать, если её нет в списке')
+                                ->maxLength(255)
+                                ->visible(fn (Get $get): bool => blank($get('mother_id'))),
                             Select::make('status')
                                 ->label('Статус')
                                 ->options([
                                     'planned' => 'Планируется',
-                                    'available' => 'Есть свободные',
-                                    'reserved' => 'Все в брони',
+                                    'available' => 'Есть свободные котята',
+                                    'reserved' => 'Все котята в брони',
                                     'archive' => 'Архив',
                                 ])
                                 ->required()
-                                ->default('available')
-                                ->helperText('«Есть свободные» показывается, когда в помёте опубликован хотя бы один свободный котёнок.'),
-                            Select::make('father_id')
-                                ->label('Отец из производителей')
-                                ->relationship('father', 'name')
-                                ->searchable()
-                                ->preload(),
-                            Select::make('mother_id')
-                                ->label('Мать из производителей')
-                                ->relationship('mother', 'name')
-                                ->searchable()
-                                ->preload(),
-                            TextInput::make('father_name')
-                                ->label('Отец вручную'),
-                            TextInput::make('mother_name')
-                                ->label('Мать вручную'),
-                            Textarea::make('father_description')
-                                ->label('Описание отца вручную')
-                                ->rows(3)
-                                ->columnSpanFull(),
-                            FileUpload::make('father_image')
-                                ->label('Фото отца вручную')
-                                ->disk('public')
-                                ->visibility('public')
-                                ->directory('media/litters/parents')
-                                ->image(),
-                            FileUpload::make('mother_image')
-                                ->label('Фото матери вручную')
-                                ->disk('public')
-                                ->visibility('public')
-                                ->directory('media/litters/parents')
-                                ->image(),
-                            Textarea::make('mother_description')
-                                ->label('Описание матери вручную')
-                                ->rows(3)
-                                ->columnSpanFull(),
-                            TextInput::make('sort_order')
-                                ->label('Приоритет')
-                                ->required()
-                                ->numeric()
-                                ->default(0),
+                                ->default('planned'),
                             Toggle::make('is_visible')
-                                ->label('Показывать на сайте')
-                                ->default(true)
+                                ->label('Опубликован на сайте')
+                                ->default(false)
                                 ->required(),
                         ]),
                     ])
@@ -110,46 +105,47 @@ class LitterForm
                 Section::make('Описание')
                     ->schema([
                         Textarea::make('description')
-                            ->label('Краткое описание')
-                            ->helperText('Не повторяйте дату и количество котят — они выводятся автоматически.')
+                            ->label('Коротко о помёте')
+                            ->helperText('Показывается в списке помётов. Не повторяйте дату и количество котят.')
                             ->rows(4)
                             ->columnSpanFull(),
                         RichEditor::make('content')
-                            ->label('Полное описание')
+                            ->label('Подробное описание')
+                            ->helperText('Дополнительный текст для страницы помёта.')
                             ->columnSpanFull(),
                     ])
-                    ->columnSpanFull(),
-
-                Section::make('Фотографии')
-                    ->schema([
-                        FileUpload::make('images')
-                            ->label('Фото')
-                            ->disk('public')
-                            ->visibility('public')
-                            ->image()
-                            ->multiple()
-                            ->reorderable()
-                            ->directory('media/litters')
-                            ->columnSpanFull(),
-                    ])
-                    ->columnSpanFull(),
-
-                Section::make('Поисковики')
-                    ->schema([
-                        TextInput::make('meta_title')
-                            ->label('Заголовок для поисковиков')
-                            ->columnSpanFull(),
-                        Textarea::make('meta_description')
-                            ->label('Описание для поисковиков')
-                            ->rows(3)
-                            ->columnSpanFull(),
-                        Textarea::make('meta_keywords')
-                            ->label('Ключевые слова')
-                            ->rows(3)
-                            ->columnSpanFull(),
-                    ])
-                    ->collapsed()
                     ->columnSpanFull(),
             ]);
+    }
+
+    private static function generatedTitle(mixed $letter, mixed $bornOn): string
+    {
+        $letter = trim((string) $letter);
+        $title = $letter !== '' ? "Помёт {$letter}" : 'Новый помёт';
+
+        if (blank($bornOn)) {
+            return $title;
+        }
+
+        try {
+            return $title.' — '.CarbonImmutable::parse($bornOn)->format('d.m.Y');
+        } catch (Throwable) {
+            return $title;
+        }
+    }
+
+    private static function uniqueSlug(string $title): string
+    {
+        $base = Str::substr(Str::slug($title), 0, 240);
+        $base = $base !== '' ? $base : 'pomet';
+        $slug = $base;
+        $suffix = 2;
+
+        while (Litter::query()->where('slug', $slug)->exists()) {
+            $slug = "{$base}-{$suffix}";
+            $suffix++;
+        }
+
+        return $slug;
     }
 }

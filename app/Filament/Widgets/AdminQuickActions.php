@@ -2,10 +2,10 @@
 
 namespace App\Filament\Widgets;
 
-use App\Filament\Pages\FileManager;
-use App\Filament\Resources\GalleryImages\GalleryImageResource;
 use App\Filament\Resources\Kittens\KittenResource;
+use App\Filament\Resources\Litters\LitterResource;
 use App\Filament\Resources\Reviews\ReviewResource;
+use App\Filament\Resources\Slides\SlideResource;
 use Filament\Widgets\Widget;
 
 class AdminQuickActions extends Widget
@@ -21,24 +21,24 @@ class AdminQuickActions extends Widget
         return [
             'actions' => [
                 [
-                    'label' => 'Котята',
-                    'description' => 'Статусы, цены, фото',
-                    'url' => KittenResource::getUrl(),
+                    'label' => 'Добавить котёнка',
+                    'description' => 'Имя, статус, цена и фото',
+                    'url' => KittenResource::getUrl('create'),
                     'icon' => '/admin-icons/cat-face.svg',
                     'theme' => 'cat',
                 ],
                 [
-                    'label' => 'Галерея',
-                    'description' => 'Добавить фото',
-                    'url' => GalleryImageResource::getUrl('create'),
-                    'icon' => 'heroicon-o-photo',
+                    'label' => 'Создать помёт',
+                    'description' => 'Дата, родители и котята',
+                    'url' => LitterResource::getUrl('create'),
+                    'icon' => 'heroicon-o-calendar-days',
                     'theme' => 'gallery',
                 ],
                 [
-                    'label' => 'Файлы',
-                    'description' => 'Загрузки и ссылки',
-                    'url' => FileManager::getUrl(),
-                    'icon' => 'heroicon-o-folder-open',
+                    'label' => 'Добавить слайд',
+                    'description' => 'Изображение на главной',
+                    'url' => SlideResource::getUrl('create'),
+                    'icon' => 'heroicon-o-photo',
                     'theme' => 'files',
                 ],
                 [

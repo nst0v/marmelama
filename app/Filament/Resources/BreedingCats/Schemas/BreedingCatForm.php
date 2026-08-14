@@ -2,17 +2,21 @@
 
 namespace App\Filament\Resources\BreedingCats\Schemas;
 
+use App\Models\BreedingCat;
 use App\Support\BurmeseColors;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Str;
 
 class BreedingCatForm
 {
@@ -28,10 +32,10 @@ class BreedingCatForm
                                 ->label('Имя')
                                 ->required()
                                 ->maxLength(255),
-                            TextInput::make('slug')
-                                ->label('ЧПУ')
-                                ->required()
-                                ->maxLength(255),
+                            Hidden::make('slug')
+                                ->dehydrateStateUsing(fn (?string $state, Get $get): string => filled($state)
+                                    ? $state
+                                    : self::uniqueSlug((string) $get('name'))),
                             Select::make('sex')
                                 ->label('Пол')
                                 ->options([
@@ -45,7 +49,7 @@ class BreedingCatForm
                                 ->required(),
                             Toggle::make('is_visible')
                                 ->label('Показывать на сайте')
-                                ->default(true)
+                                ->default(false)
                                 ->required(),
                             TextInput::make('title')
                                 ->label('Титулы / награды'),
@@ -53,8 +57,7 @@ class BreedingCatForm
                                 ->label('Окрас')
                                 ->options(fn ($record = null): array => BurmeseColors::forSelect($record?->color))
                                 ->searchable()
-                                ->native(false)
-                                ->helperText('Официальные окрасы: CFA для американской бурмы, FIFe для европейского типа. Текущее значение сохраняется отдельным пунктом, если оно не совпадает со стандартом.'),
+                                ->native(false),
                             DatePicker::make('birthday')
                                 ->label('Дата рождения'),
                             TextInput::make('father_name')
@@ -65,11 +68,6 @@ class BreedingCatForm
                                 ->label('Заводчик'),
                             TextInput::make('owner')
                                 ->label('Владелец'),
-                            TextInput::make('sort_order')
-                                ->label('Приоритет')
-                                ->required()
-                                ->numeric()
-                                ->default(0),
                         ]),
                     ])
                     ->columnSpanFull(),
@@ -99,33 +97,29 @@ class BreedingCatForm
                             ->image()
                             ->multiple()
                             ->reorderable()
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                            ->maxFiles(12)
+                            ->maxSize(10240)
                             ->directory('media/parents')
+                            ->helperText('JPG, PNG или WebP, до 10 МБ. Первое фото будет обложкой.')
                             ->columnSpanFull(),
                     ])
-                    ->columnSpanFull(),
-
-                Section::make('Поисковики')
-                    ->schema([
-                        Grid::make(2)->schema([
-                            TextInput::make('image_alt')
-                                ->label('Описание фото для поисковиков'),
-                            TextInput::make('image_title')
-                                ->label('Подсказка фото'),
-                        ]),
-                        TextInput::make('meta_title')
-                            ->label('Заголовок для поисковиков')
-                            ->columnSpanFull(),
-                        Textarea::make('meta_description')
-                            ->label('Описание для поисковиков')
-                            ->rows(3)
-                            ->columnSpanFull(),
-                        Textarea::make('meta_keywords')
-                            ->label('Ключевые слова')
-                            ->rows(3)
-                            ->columnSpanFull(),
-                    ])
-                    ->collapsed()
                     ->columnSpanFull(),
             ]);
+    }
+
+    private static function uniqueSlug(string $name): string
+    {
+        $base = Str::substr(Str::slug($name), 0, 240);
+        $base = $base !== '' ? $base : 'proizvoditel';
+        $slug = $base;
+        $suffix = 2;
+
+        while (BreedingCat::query()->where('slug', $slug)->exists()) {
+            $slug = "{$base}-{$suffix}";
+            $suffix++;
+        }
+
+        return $slug;
     }
 }

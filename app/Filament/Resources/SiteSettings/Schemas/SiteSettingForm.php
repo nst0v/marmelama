@@ -2,9 +2,8 @@
 
 namespace App\Filament\Resources\SiteSettings\Schemas;
 
-use Filament\Forms\Components\Select;
+use App\Models\SiteSetting;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -14,58 +13,27 @@ class SiteSettingForm
     {
         return $schema
             ->components([
-                Section::make('Настройка сайта')
-                    ->description('Почта, телефон, адрес, сообщения, заказ звонка и награды.')
+                Section::make('Контакт на сайте')
+                    ->description('Измените только значение. Технические ключи и типы управляются приложением.')
                     ->schema([
-                        TextInput::make('label')
-                            ->label('Название'),
-                        TextInput::make('key')
-                            ->label('Ключ')
-                            ->required(),
-                        Textarea::make('value')
-                            ->label('Значение')
-                            ->rows(4)
+                        TextInput::make('value')
+                            ->label(fn (?SiteSetting $record): string => match ($record?->key) {
+                                'phone' => 'Телефон',
+                                'admin_email' => 'Электронная почта',
+                                'max_url' => 'Ссылка на MAX',
+                                default => $record?->label ?: 'Значение',
+                            })
+                            ->helperText(fn (?SiteSetting $record): ?string => match ($record?->key) {
+                                'phone' => 'Показывается в шапке, контактах и подвале.',
+                                'admin_email' => 'Показывается на сайте и принимает сообщения из формы контактов.',
+                                'max_url' => 'Полная ссылка на профиль или чат MAX. Пустое значение использует резервную ссылку.',
+                                default => null,
+                            })
+                            ->required(fn (?SiteSetting $record): bool => in_array($record?->key, ['phone', 'admin_email'], true))
+                            ->maxLength(500)
                             ->columnSpanFull(),
-                        Select::make('group')
-                            ->label('Группа')
-                            ->options(fn ($record = null): array => self::withCurrent([
-                                'main' => 'Основные',
-                                'contacts' => 'Контакты',
-                                'content' => 'Контент',
-                                'seo' => 'Поисковая оптимизация',
-                                'social' => 'Соцсети',
-                            ], $record?->group))
-                            ->searchable()
-                            ->native(false)
-                            ->required()
-                            ->default('main'),
-                        Select::make('type')
-                            ->label('Тип')
-                            ->options(fn ($record = null): array => self::withCurrent([
-                                'text' => 'Короткий текст',
-                                'textarea' => 'Большой текст',
-                                'email' => 'Почта',
-                                'boolean' => 'Да / нет',
-                                'url' => 'Ссылка',
-                                'image' => 'Изображение',
-                            ], $record?->type))
-                            ->searchable()
-                            ->native(false)
-                            ->required()
-                            ->default('text'),
                     ])
                     ->columnSpanFull(),
             ]);
-    }
-
-    private static function withCurrent(array $options, ?string $currentValue): array
-    {
-        $currentValue = trim((string) $currentValue);
-
-        if ($currentValue !== '' && ! array_key_exists($currentValue, $options)) {
-            $options[$currentValue] = "Текущее значение: {$currentValue}";
-        }
-
-        return $options;
     }
 }

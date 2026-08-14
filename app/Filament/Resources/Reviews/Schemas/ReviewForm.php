@@ -17,50 +17,62 @@ class ReviewForm
     {
         return $schema
             ->components([
-                Section::make('Отзыв')
-                    ->description('Автор, телефон, текст, ответ и видимость на сайте.')
+                Grid::make(['default' => 1, 'xl' => 3])
                     ->schema([
-                        Grid::make(2)->schema([
-                            DatePicker::make('reviewed_at')
-                                ->label('Дата'),
-                            TextInput::make('author_name')
-                                ->label('Автор')
-                                ->required()
-                                ->maxLength(255),
-                            TextInput::make('phone')
-                                ->label('Телефон')
-                                ->tel()
-                                ->maxLength(255),
-                            TextInput::make('email')
-                                ->label('Почта')
-                                ->email()
-                                ->maxLength(255),
-                            TextInput::make('sort_order')
-                                ->label('Приоритет')
-                                ->required()
-                                ->numeric()
-                                ->default(0),
-                            Textarea::make('body')
-                                ->label('Текст отзыва')
-                                ->required()
-                                ->helperText('На странице отзыв выводится полностью; абзацы и длинный текст поддерживаются.')
-                                ->rows(5)
-                                ->columnSpanFull(),
-                            Textarea::make('response')
-                                ->label('Ответ')
-                                ->rows(4)
-                                ->columnSpanFull(),
-                            FileUpload::make('image')
-                                ->label('Фото')
-                                ->disk('public')
-                                ->visibility('public')
-                                ->directory('media/reviews')
-                                ->image(),
-                            Toggle::make('is_visible')
-                                ->label('Показывать')
-                                ->default(true)
-                                ->required(),
-                        ]),
+                        Section::make('Отзыв и ответ')
+                            ->description('Основной текст, который увидят посетители сайта.')
+                            ->schema([
+                                Textarea::make('body')
+                                    ->label('Отзыв клиента')
+                                    ->required()
+                                    ->helperText('Абзацы и длинный текст поддерживаются.')
+                                    ->rows(9)
+                                    ->columnSpanFull(),
+                                Textarea::make('response')
+                                    ->label('Ответ питомника')
+                                    ->helperText('Оставьте пустым, если ответ пока не готов.')
+                                    ->rows(7)
+                                    ->columnSpanFull(),
+                            ])
+                            ->columnSpan(['xl' => 2]),
+
+                        Grid::make(1)
+                            ->schema([
+                                Section::make('Автор')
+                                    ->schema([
+                                        TextInput::make('author_name')
+                                            ->label('Имя')
+                                            ->required()
+                                            ->maxLength(255),
+                                        DatePicker::make('reviewed_at')
+                                            ->label('Дата отзыва'),
+                                        TextInput::make('phone')
+                                            ->label('Телефон')
+                                            ->tel()
+                                            ->maxLength(255),
+                                        TextInput::make('email')
+                                            ->label('Электронная почта')
+                                            ->email()
+                                            ->maxLength(255),
+                                    ]),
+                                Section::make('Публикация и фото')
+                                    ->schema([
+                                        Toggle::make('is_visible')
+                                            ->label('Опубликован на сайте')
+                                            ->default(false)
+                                            ->required(),
+                                        FileUpload::make('image')
+                                            ->label('Фото к отзыву')
+                                            ->disk('public')
+                                            ->visibility('public')
+                                            ->directory('media/reviews')
+                                            ->image()
+                                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                                            ->maxSize(10240)
+                                            ->helperText('JPG, PNG или WebP, до 10 МБ.'),
+                                    ]),
+                            ])
+                            ->columnSpan(['xl' => 1]),
                     ])
                     ->columnSpanFull(),
             ]);

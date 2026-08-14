@@ -59,11 +59,11 @@ class HeaderTest extends TestCase
 
         foreach ([
             '/' => 'Главная',
-            '/pets' => 'Наши котята',
+            '/kittens' => 'Наши котята',
             '/about' => 'О питомнике',
-            '/pomet' => 'Пометы',
+            '/litters' => 'Пометы',
             '/reviews' => 'Отзывы',
-            '/dostavka' => 'Доставка',
+            '/delivery' => 'Доставка',
         ] as $url => $label) {
             $response = $this->get($url);
 

@@ -89,7 +89,7 @@ class ReadableListsTest extends TestCase
             'is_visible' => false,
         ]);
 
-        $response = $this->get('/pomet');
+        $response = $this->get('/litters');
 
         $response->assertOk();
         $response->assertSee('Помёт N');

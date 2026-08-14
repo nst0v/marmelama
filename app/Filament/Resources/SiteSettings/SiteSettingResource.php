@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\SiteSettings;
 
-use App\Filament\Resources\SiteSettings\Pages\CreateSiteSetting;
 use App\Filament\Resources\SiteSettings\Pages\EditSiteSetting;
 use App\Filament\Resources\SiteSettings\Pages\ListSiteSettings;
 use App\Filament\Resources\SiteSettings\Schemas\SiteSettingForm;
@@ -13,6 +12,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class SiteSettingResource extends Resource
 {
@@ -24,11 +24,19 @@ class SiteSettingResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
-    protected static ?string $navigationLabel = 'Настройки';
+    protected static ?string $navigationLabel = 'Контакты';
 
-    protected static ?string $modelLabel = 'настройка';
+    protected static ?string $modelLabel = 'контакт';
 
-    protected static ?string $pluralModelLabel = 'настройки';
+    protected static ?string $pluralModelLabel = 'контакты';
+
+    protected static ?string $recordTitleAttribute = 'label';
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->whereIn('key', ['phone', 'admin_email', 'max_url']);
+    }
 
     public static function form(Schema $schema): Schema
     {
@@ -51,7 +59,6 @@ class SiteSettingResource extends Resource
     {
         return [
             'index' => ListSiteSettings::route('/'),
-            'create' => CreateSiteSetting::route('/create'),
             'edit' => EditSiteSetting::route('/{record}/edit'),
         ];
     }

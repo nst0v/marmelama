@@ -3,11 +3,8 @@
 namespace App\Filament\Resources\Slides\Schemas;
 
 use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -18,40 +15,7 @@ class SlideForm
         return $schema
             ->components([
                 Section::make('Слайд на главной')
-                    ->description('Слайдер главной страницы: название, ссылка, подпись, описание картинки и приоритет.')
-                    ->schema([
-                        Grid::make(2)->schema([
-                            TextInput::make('title')
-                                ->label('Название слайда')
-                                ->maxLength(200)
-                                ->columnSpan(1),
-                            Select::make('placement')
-                                ->label('Страница')
-                                ->options(fn ($record = null): array => self::withCurrent([
-                                    'home' => 'Главная страница',
-                                ], $record?->placement))
-                                ->searchable()
-                                ->native(false)
-                                ->default('home')
-                                ->helperText('Значение home означает главную страницу.')
-                                ->columnSpan(1),
-                            TextInput::make('url')
-                                ->label('Ссылка')
-                                ->maxLength(200)
-                                ->columnSpanFull(),
-                            Textarea::make('caption')
-                                ->label('Блок описания')
-                                ->rows(4)
-                                ->columnSpanFull(),
-                            TextInput::make('alt')
-                                ->label('Описание картинки для поисковиков')
-                                ->maxLength(200)
-                                ->columnSpanFull(),
-                        ]),
-                    ])
-                    ->columnSpanFull(),
-
-                Section::make('Изображение и публикация')
+                    ->description('Загрузите изображение и решите, показывать ли его на сайте.')
                     ->schema([
                         FileUpload::make('image')
                             ->label('Изображение')
@@ -59,32 +23,26 @@ class SlideForm
                             ->visibility('public')
                             ->directory('media/slides')
                             ->image()
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                            ->maxSize(10240)
                             ->required()
+                            ->helperText('JPG, PNG или WebP, до 10 МБ.')
                             ->columnSpanFull(),
-                        Grid::make(2)->schema([
-                            TextInput::make('sort_order')
-                                ->label('Приоритет')
-                                ->required()
-                                ->numeric()
-                                ->default(0),
-                            Toggle::make('is_visible')
-                                ->label('Показывать на сайте')
-                                ->default(true)
-                                ->required(),
-                        ]),
+                        TextInput::make('title')
+                            ->label('Название для администратора')
+                            ->maxLength(200)
+                            ->helperText('Поможет отличить этот слайд от остальных.'),
+                        TextInput::make('alt')
+                            ->label('Что изображено')
+                            ->maxLength(200)
+                            ->helperText('Короткое описание изображения для доступности сайта.'),
+                        Toggle::make('is_visible')
+                            ->label('Опубликован на сайте')
+                            ->default(false)
+                            ->required(),
                     ])
+                    ->columns(2)
                     ->columnSpanFull(),
             ]);
-    }
-
-    private static function withCurrent(array $options, ?string $currentValue): array
-    {
-        $currentValue = trim((string) $currentValue);
-
-        if ($currentValue !== '' && ! array_key_exists($currentValue, $options)) {
-            $options[$currentValue] = "Текущее значение: {$currentValue}";
-        }
-
-        return $options;
     }
 }

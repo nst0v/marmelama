@@ -142,15 +142,6 @@ p { margin: 0; }
 .kitten-filter-tabs a { min-height: 34px; gap: 6px; border-color: transparent; padding: 5px 9px 5px 11px; background: transparent; font-size: 12px; }
 .kitten-filter-tabs a:hover { border-color: rgba(139, 94, 60, .16); background: var(--color-soft); }
 .kitten-filter-tabs a.active { border-color: var(--color-primary-dark); background: var(--color-primary-dark); color: #fff; }
-.kitten-filter-tabs a.kitten-filter-hot { border-color: #e7a064; background: linear-gradient(180deg, #fffaf4, #fff0e1); color: #8f3f18; box-shadow: 0 4px 12px rgba(188, 77, 27, .08); }
-.kitten-filter-tabs a.kitten-filter-hot:hover { border-color: #d87639; background: linear-gradient(180deg, #fff7ef, #ffe7d1); color: #71300f; }
-.kitten-filter-tabs a.kitten-filter-hot.active { border-color: #bd4b1d; background: linear-gradient(135deg, #d9672f, #ae3d17); color: #fff; box-shadow: 0 6px 16px rgba(174, 61, 23, .2); }
-.kitten-filter-fire-badge { display: inline-grid; width: 25px; height: 25px; flex: 0 0 25px; place-items: center; border: 1px solid #f1c09b; border-radius: 50%; background: linear-gradient(145deg, #fffdf9, #fff0df); box-shadow: 0 3px 9px rgba(184, 70, 24, .14), inset 0 1px 0 #fff; }
-.kitten-filter-hot.active .kitten-filter-fire-badge { border-color: rgba(255, 255, 255, .58); background: rgba(255, 255, 255, .94); box-shadow: 0 3px 9px rgba(103, 30, 8, .18), inset 0 1px 0 #fff; }
-.kitten-filter-fire { width: 19px; height: 19px; overflow: visible; }
-.kitten-filter-fire-outer { fill: url("#kitten-fire-outer"); filter: drop-shadow(0 1px 1px rgba(141, 44, 17, .18)); }
-.kitten-filter-fire-core { fill: url("#kitten-fire-core"); }
-.kitten-filter-fire-shine { fill: none; stroke: rgba(255, 245, 211, .82); stroke-width: 1.35; stroke-linecap: round; }
 .kitten-filter-count { display: inline-grid; min-width: 20px; height: 20px; place-items: center; border-radius: 999px; padding: 0 5px; background: rgba(111, 71, 43, .09); color: inherit; font-size: 9px; font-weight: 900; line-height: 1; }
 .kitten-filter-tabs a.active .kitten-filter-count { background: rgba(255, 255, 255, .2); }
 .kitten-filter-controls { display: flex; flex: 0 1 auto; flex-wrap: wrap; gap: 7px; align-items: flex-end; padding: 0; }
@@ -1200,8 +1191,6 @@ p { margin: 0; }
   .kitten-filter-label { padding-left: 3px; }
   .kitten-filter-tabs { gap: 5px; }
   .kitten-filter-tabs a { min-height: 34px; padding: 5px 8px 5px 9px; font-size: 11px; }
-  .kitten-filter-fire-badge { width: 23px; height: 23px; flex-basis: 23px; }
-  .kitten-filter-fire { width: 17px; height: 17px; }
   .kitten-filter-count { min-width: 19px; height: 19px; padding-inline: 4px; font-size: 9px; }
   .kitten-filter-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-top: 1px solid rgba(139, 94, 60, .1); padding-top: 9px; }
   .kitten-filter-field { min-width: 0; }

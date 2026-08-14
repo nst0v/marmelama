@@ -6,6 +6,7 @@ use App\Filament\Resources\Litters\Pages\CreateLitter;
 use App\Filament\Resources\Litters\Pages\EditLitter;
 use App\Filament\Resources\Litters\Pages\ListLitters;
 use App\Filament\Resources\Litters\Pages\ViewLitter;
+use App\Filament\Resources\Litters\RelationManagers\KittensRelationManager;
 use App\Filament\Resources\Litters\Schemas\LitterForm;
 use App\Filament\Resources\Litters\Schemas\LitterInfolist;
 use App\Filament\Resources\Litters\Tables\LittersTable;
@@ -26,11 +27,13 @@ class LitterResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
-    protected static ?string $navigationLabel = 'Пометы';
+    protected static ?string $navigationLabel = 'Помёты';
 
-    protected static ?string $modelLabel = 'помет';
+    protected static ?string $modelLabel = 'помёт';
 
-    protected static ?string $pluralModelLabel = 'пометы';
+    protected static ?string $pluralModelLabel = 'помёты';
+
+    protected static ?string $recordTitleAttribute = 'title';
 
     public static function form(Schema $schema): Schema
     {
@@ -50,7 +53,7 @@ class LitterResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            KittensRelationManager::class,
         ];
     }
 

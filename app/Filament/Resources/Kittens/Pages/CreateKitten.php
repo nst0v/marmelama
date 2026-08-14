@@ -8,4 +8,6 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateKitten extends CreateRecord
 {
     protected static string $resource = KittenResource::class;
+
+    protected static bool $canCreateAnother = false;
 }

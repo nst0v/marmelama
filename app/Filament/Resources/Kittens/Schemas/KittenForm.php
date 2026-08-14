@@ -2,9 +2,12 @@
 
 namespace App\Filament\Resources\Kittens\Schemas;
 
+use App\Models\Kitten;
+use App\Models\Litter;
 use App\Support\BurmeseColors;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -23,31 +26,38 @@ class KittenForm
     {
         return $schema
             ->components([
-                Section::make('Котенок')
-                    ->description('Имя, помет, статус, цена, приоритет и публикация.')
+                Section::make('Котёнок')
+                    ->description('Основная информация, которую увидят посетители сайта.')
                     ->schema([
                         Grid::make(2)->schema([
                             Select::make('litter_id')
-                                ->label('Помет')
+                                ->label('Помёт')
                                 ->relationship('litter', 'title')
                                 ->searchable()
-                                ->preload(),
+                                ->preload()
+                                ->live()
+                                ->default(fn ($livewire): ?int => self::relationLitter($livewire)?->getKey())
+                                ->disabled(fn ($livewire): bool => self::relationLitter($livewire) !== null)
+                                ->dehydrated()
+                                ->afterStateUpdated(function (Get $get, Set $set, int|string|null $state): void {
+                                    if (($state === null) || filled($get('born_on'))) {
+                                        return;
+                                    }
+
+                                    $bornOn = Litter::query()->whereKey($state)->value('born_on');
+
+                                    if ($bornOn !== null) {
+                                        $set('born_on', $bornOn);
+                                    }
+                                }),
                             TextInput::make('name')
                                 ->label('Имя')
                                 ->required()
-                                ->maxLength(255)
-                                ->live(onBlur: true)
-                                ->afterStateUpdated(function (Get $get, Set $set, ?string $state): void {
-                                    if (blank($get('slug'))) {
-                                        $set('slug', Str::slug($state ?? ''));
-                                    }
-                                }),
-                            TextInput::make('slug')
-                                ->label('ЧПУ')
-                                ->required()
-                                ->maxLength(255)
-                                ->unique(ignoreRecord: true)
-                                ->helperText('Заполнится из имени автоматически.'),
+                                ->maxLength(255),
+                            Hidden::make('slug')
+                                ->dehydrateStateUsing(fn (?string $state, Get $get): string => filled($state)
+                                    ? $state
+                                    : self::uniqueSlug((string) $get('name'))),
                             Select::make('sex')
                                 ->label('Пол')
                                 ->options([
@@ -56,15 +66,15 @@ class KittenForm
                                     'unknown' => 'Не указан',
                                 ])
                                 ->required()
-                                ->default('unknown'),
+                                ->placeholder('Выберите пол'),
                             Select::make('color')
                                 ->label('Окрас')
                                 ->options(fn ($record = null): array => BurmeseColors::forSelect($record?->color))
                                 ->searchable()
-                                ->native(false)
-                                ->helperText('Официальные окрасы: CFA для американской бурмы, FIFe для европейского типа. Текущее значение сохраняется отдельным пунктом, если оно не совпадает со стандартом.'),
+                                ->native(false),
                             DatePicker::make('born_on')
-                                ->label('Дата рождения'),
+                                ->label('Дата рождения')
+                                ->default(fn ($livewire): ?string => self::relationLitter($livewire)?->born_on?->format('Y-m-d')),
                             Select::make('status')
                                 ->label('Статус')
                                 ->options([
@@ -75,17 +85,15 @@ class KittenForm
                                 ->required()
                                 ->default('available'),
                             TextInput::make('price')
-                                ->label('Цена')
+                                ->label('Цена, ₽')
                                 ->numeric()
-                                ->prefix('₽'),
-                            TextInput::make('sort_order')
-                                ->label('Приоритет')
-                                ->required()
-                                ->numeric()
-                                ->default(0),
+                                ->minValue(0)
+                                ->maxValue(99999999.99)
+                                ->suffix('₽')
+                                ->helperText('Оставьте пустым, если цена сообщается по запросу.'),
                             Toggle::make('is_visible')
-                                ->label('Показывать на сайте')
-                                ->default(true)
+                                ->label('Опубликован на сайте')
+                                ->default(false)
                                 ->required(),
                         ]),
                     ])
@@ -94,12 +102,13 @@ class KittenForm
                 Section::make('Описание')
                     ->schema([
                         Textarea::make('description')
-                            ->label('Краткое описание')
-                            ->helperText('Показывается в карточке. Лучше 1–2 коротких предложения.')
+                            ->label('Коротко о котёнке')
+                            ->helperText('Показывается в каталоге. Достаточно 1–2 предложений.')
                             ->rows(4)
                             ->columnSpanFull(),
                         RichEditor::make('content')
-                            ->label('Полное описание')
+                            ->label('Характер и особенности')
+                            ->helperText('Подробный текст для страницы котёнка.')
                             ->columnSpanFull(),
                     ])
                     ->columnSpanFull(),
@@ -113,33 +122,40 @@ class KittenForm
                             ->image()
                             ->multiple()
                             ->reorderable()
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                            ->maxFiles(12)
+                            ->maxSize(10240)
                             ->directory('media/kittens')
+                            ->helperText('JPG, PNG или WebP, до 10 МБ. Первое фото будет обложкой.')
                             ->columnSpanFull(),
                     ])
                     ->columnSpanFull(),
-
-                Section::make('Поисковики и подписи фото')
-                    ->schema([
-                        Grid::make(2)->schema([
-                            TextInput::make('image_alt')
-                                ->label('Описание фото для поисковиков'),
-                            TextInput::make('image_title')
-                                ->label('Подсказка фото'),
-                            TextInput::make('meta_title')
-                                ->label('Заголовок для поисковиков')
-                                ->columnSpanFull(),
-                            Textarea::make('meta_description')
-                                ->label('Описание для поисковиков')
-                                ->rows(3)
-                                ->columnSpanFull(),
-                            Textarea::make('meta_keywords')
-                                ->label('Ключевые слова')
-                                ->rows(3)
-                                ->columnSpanFull(),
-                        ]),
-                    ])
-                    ->collapsed()
-                    ->columnSpanFull(),
             ]);
+    }
+
+    private static function relationLitter(mixed $livewire): ?Litter
+    {
+        if (! is_object($livewire) || ! method_exists($livewire, 'getOwnerRecord')) {
+            return null;
+        }
+
+        $ownerRecord = $livewire->getOwnerRecord();
+
+        return $ownerRecord instanceof Litter ? $ownerRecord : null;
+    }
+
+    private static function uniqueSlug(string $name): string
+    {
+        $base = Str::substr(Str::slug($name), 0, 240);
+        $base = $base !== '' ? $base : 'kotenok';
+        $slug = $base;
+        $suffix = 2;
+
+        while (Kitten::query()->where('slug', $slug)->exists()) {
+            $slug = "{$base}-{$suffix}";
+            $suffix++;
+        }
+
+        return $slug;
     }
 }

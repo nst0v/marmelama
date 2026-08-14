@@ -32,6 +32,8 @@ class BreedingCatResource extends Resource
 
     protected static ?string $pluralModelLabel = 'производители';
 
+    protected static ?string $recordTitleAttribute = 'name';
+
     public static function form(Schema $schema): Schema
     {
         return BreedingCatForm::configure($schema);

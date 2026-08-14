@@ -2,6 +2,14 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Resources\BreedingCats\BreedingCatResource;
+use App\Filament\Resources\Kittens\KittenResource;
+use App\Filament\Resources\Litters\LitterResource;
+use App\Filament\Resources\Reviews\ReviewResource;
+use App\Filament\Resources\SiteSettings\SiteSettingResource;
+use App\Filament\Resources\Slides\SlideResource;
+use App\Filament\Widgets\AdminQuickActions;
+use App\Filament\Widgets\AdminWelcome;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -31,13 +39,21 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::hex('#8B5E3C'),
             ])
-            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
-            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
+            ->resources([
+                KittenResource::class,
+                LitterResource::class,
+                SlideResource::class,
+                ReviewResource::class,
+                BreedingCatResource::class,
+                SiteSettingResource::class,
+            ])
             ->pages([
                 Dashboard::class,
             ])
-            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
-            ->widgets([])
+            ->widgets([
+                AdminWelcome::class,
+                AdminQuickActions::class,
+            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,

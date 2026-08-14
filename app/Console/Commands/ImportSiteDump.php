@@ -2,9 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Article;
-use App\Models\ArticleCategory;
-use App\Models\ArticleComment;
 use App\Models\BreedingCat;
 use App\Models\ContentPage;
 use App\Models\GalleryCategory;
@@ -12,7 +9,6 @@ use App\Models\GalleryImage;
 use App\Models\Kitten;
 use App\Models\Litter;
 use App\Models\NewsPost;
-use App\Models\Question;
 use App\Models\Review;
 use App\Models\SiteSetting;
 use App\Models\Slide;
@@ -34,9 +30,6 @@ use Illuminate\Support\Str;
 class ImportSiteDump extends Command
 {
     private const TABLES = [
-        'articles',
-        'articles_cat',
-        'article_comments',
         'cats',
         'content',
         'gallery',
@@ -44,7 +37,6 @@ class ImportSiteDump extends Command
         'kittens',
         'news',
         'pomet',
-        'questions',
         'reviews',
         'settings',
         'slider',
@@ -88,10 +80,6 @@ class ImportSiteDump extends Command
             $this->importKittens();
             $this->importReviews();
             $this->importContentPages();
-            $this->importArticleCategories();
-            $this->importArticles();
-            $this->importArticleComments();
-            $this->importQuestions();
             $this->importGallery();
             $this->importSlides();
             $this->importNews();
@@ -153,11 +141,13 @@ class ImportSiteDump extends Command
             if ($inString) {
                 if ($escaped) {
                     $escaped = false;
+
                     continue;
                 }
 
                 if ($char === '\\') {
                     $escaped = true;
+
                     continue;
                 }
 
@@ -170,6 +160,7 @@ class ImportSiteDump extends Command
 
             if ($char === "'") {
                 $inString = true;
+
                 continue;
             }
 
@@ -215,20 +206,24 @@ class ImportSiteDump extends Command
                 if ($escaped) {
                     $field .= $this->decodeEscapedCharacter($char);
                     $escaped = false;
+
                     continue;
                 }
 
                 if ($char === '\\') {
                     $escaped = true;
+
                     continue;
                 }
 
                 if ($char === "'") {
                     $inString = false;
+
                     continue;
                 }
 
                 $field .= $char;
+
                 continue;
             }
 
@@ -246,6 +241,7 @@ class ImportSiteDump extends Command
             if ($char === "'") {
                 $inString = true;
                 $fieldQuoted = true;
+
                 continue;
             }
 
@@ -253,6 +249,7 @@ class ImportSiteDump extends Command
                 $row[] = $this->normalizeField($field, $fieldQuoted);
                 $field = '';
                 $fieldQuoted = false;
+
                 continue;
             }
 
@@ -260,6 +257,7 @@ class ImportSiteDump extends Command
                 $row[] = $this->normalizeField($field, $fieldQuoted);
                 $rows[] = $row;
                 $inRow = false;
+
                 continue;
             }
 
@@ -307,10 +305,6 @@ class ImportSiteDump extends Command
             foreach ([
                 'site_settings',
                 'slides',
-                'article_comments',
-                'articles',
-                'article_categories',
-                'questions',
                 'gallery_images',
                 'gallery_categories',
                 'news_posts',
@@ -460,12 +454,20 @@ class ImportSiteDump extends Command
 
     private function importContentPages(): void
     {
+        $imported = 0;
+
         foreach ($this->sourceData['content'] ?? [] as $row) {
+            $slug = $this->contentSlug($row);
+
+            if (! in_array($slug, ['about', 'dostavka', 'video'], true)) {
+                continue;
+            }
+
             ContentPage::updateOrCreate(
                 ['old_id' => $this->int($row, 'id')],
                 [
                     'title' => $this->string($row, 'title') ?: 'Страница',
-                    'slug' => $this->contentSlug($row),
+                    'slug' => $slug,
                     'h1' => null,
                     'content' => $this->nullableString($row, 'tekst'),
                     'meta_title' => $this->nullableString($row, 'title'),
@@ -475,111 +477,11 @@ class ImportSiteDump extends Command
                     'is_visible' => (bool) ($row['visible'] ?? true),
                 ]
             );
+
+            $imported++;
         }
 
-        $this->info('Imported content pages: '.count($this->sourceData['content'] ?? []));
-    }
-
-    private function importArticleCategories(): void
-    {
-        foreach ($this->sourceData['articles_cat'] ?? [] as $row) {
-            $parent = null;
-            $parentOldId = $this->int($row, 'parent_cat');
-
-            if ($parentOldId > 0 && $parentOldId !== $this->int($row, 'id')) {
-                $parent = ArticleCategory::query()->where('old_id', $parentOldId)->first();
-            }
-
-            ArticleCategory::updateOrCreate(
-                ['old_id' => $this->int($row, 'id')],
-                [
-                    'parent_id' => $parent?->id,
-                    'title' => $this->string($row, 'title') ?: 'Категория статей',
-                    'slug' => $this->slug($row, 'url', 'article-category-'.$this->int($row, 'id')),
-                    'description' => $this->nullableString($row, 'descr'),
-                    'description_position' => ((int) ($row['descr_pos'] ?? 0)) === 1 ? 'bottom' : 'top',
-                    'meta_description' => $this->nullableString($row, 'meta_desc'),
-                    'meta_keywords' => $this->nullableString($row, 'meta_keywords'),
-                    'seo_title' => $this->nullableString($row, 'seo_title'),
-                    'seo_h1' => $this->nullableString($row, 'seo_h1'),
-                    'sort_order' => (int) ($row['prior'] ?? 0),
-                ]
-            );
-        }
-
-        $this->info('Imported article categories: '.count($this->sourceData['articles_cat'] ?? []));
-    }
-
-    private function importArticles(): void
-    {
-        foreach ($this->sourceData['articles'] ?? [] as $row) {
-            $category = ArticleCategory::query()->where('old_id', $this->int($row, 'cat'))->first();
-
-            Article::updateOrCreate(
-                ['old_id' => $this->int($row, 'id')],
-                [
-                    'article_category_id' => $category?->id,
-                    'slug' => $this->slug($row, 'url', 'article-'.$this->int($row, 'id')),
-                    'title' => $this->string($row, 'title') ?: 'Статья',
-                    'h1' => $this->nullableString($row, 'h1'),
-                    'meta_description' => $this->nullableString($row, 'meta_desc'),
-                    'meta_keywords' => $this->nullableString($row, 'meta_keywords'),
-                    'excerpt' => $this->nullableString($row, 'kratk'),
-                    'content' => $this->nullableString($row, 'tekst'),
-                    'published_at' => $this->dateTime($row['data'] ?? null),
-                    'sort_order' => (int) ($row['prior'] ?? 0),
-                    'image' => $this->image(
-                        $this->string($row, 'img'),
-                        'media/articles',
-                        ['public/images/articles', 'public/images']
-                    ),
-                    'allow_comments' => (bool) ($row['allow_comment'] ?? false),
-                    'is_visible' => (bool) ($row['visible'] ?? true),
-                ]
-            );
-        }
-
-        $this->info('Imported articles: '.count($this->sourceData['articles'] ?? []));
-    }
-
-    private function importArticleComments(): void
-    {
-        foreach ($this->sourceData['article_comments'] ?? [] as $row) {
-            $article = Article::query()->where('old_id', $this->int($row, 'article_id'))->first();
-
-            ArticleComment::updateOrCreate(
-                ['old_id' => $this->int($row, 'id')],
-                [
-                    'article_id' => $article?->id,
-                    'parent_id' => null,
-                    'author_name' => $this->nullableString($row, 'author'),
-                    'body' => $this->string($row, 'comment'),
-                    'commented_at' => $this->dateTime($row['data'] ?? null),
-                    'is_visible' => (bool) ($row['visible'] ?? false),
-                ]
-            );
-        }
-
-        $this->info('Imported article comments: '.count($this->sourceData['article_comments'] ?? []));
-    }
-
-    private function importQuestions(): void
-    {
-        foreach ($this->sourceData['questions'] ?? [] as $row) {
-            Question::updateOrCreate(
-                ['old_id' => $this->int($row, 'id')],
-                [
-                    'author_name' => $this->nullableString($row, 'author'),
-                    'phone' => $this->nullableString($row, 'telefon'),
-                    'title' => $this->string($row, 'title') ?: 'Вопрос',
-                    'body' => $this->nullableString($row, 'question'),
-                    'response' => $this->nullableString($row, 'otvet'),
-                    'asked_at' => $this->date($row['data'] ?? null),
-                ]
-            );
-        }
-
-        $this->info('Imported questions: '.count($this->sourceData['questions'] ?? []));
+        $this->info("Imported content pages: {$imported}");
     }
 
     private function importGallery(): void
@@ -666,10 +568,6 @@ class ImportSiteDump extends Command
             foreach ([
                 'admin_email' => ['Контактный email', 'email'],
                 'phone' => ['Телефон', 'text'],
-                'address' => ['Адрес', 'text'],
-                'message' => ['Сообщение', 'textarea'],
-                'zvonok' => ['Заказ звонка включен', 'boolean'],
-                'nagrada' => ['Показывать награды', 'boolean'],
             ] as $key => [$label, $type]) {
                 SiteSetting::updateOrCreate(
                     ['key' => $key],
@@ -791,29 +689,6 @@ class ImportSiteDump extends Command
 
             if ($date !== false) {
                 return $date->toDateString();
-            }
-        }
-
-        return null;
-    }
-
-    private function dateTime(mixed $value): ?string
-    {
-        $value = trim((string) $value);
-
-        if ($value === '' || $value === '0000-00-00' || $value === '0000-00-00 00:00:00') {
-            return null;
-        }
-
-        foreach (['Y-m-d H:i:s', 'Y-m-d', 'd.m.Y'] as $format) {
-            try {
-                $date = CarbonImmutable::createFromFormat($format, $value);
-            } catch (\Throwable) {
-                $date = false;
-            }
-
-            if ($date !== false) {
-                return $date->toDateTimeString();
             }
         }
 

@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Article;
-use App\Models\ArticleCategory;
 use App\Models\BreedingCat;
 use App\Models\ContentPage;
 use App\Models\GalleryImage;
@@ -428,54 +426,14 @@ class SiteController extends Controller
 
     public function page(string $slug): View
     {
+        abort_unless(in_array($slug, ['about', 'video'], true), 404);
+
         $page = ContentPage::query()
             ->where('slug', $slug)
             ->where('is_visible', true)
             ->firstOrFail();
 
         return view('pages.content.show', compact('page'));
-    }
-
-    public function archive(): View
-    {
-        return view('pages.archive', [
-            'kittens' => Kitten::query()
-                ->with('litter')
-                ->where('is_visible', true)
-                ->where('status', 'sold')
-                ->orderByDesc('id')
-                ->get(),
-        ]);
-    }
-
-    public function articles(): View
-    {
-        return view('pages.articles.index', [
-            'categories' => ArticleCategory::query()
-                ->withCount('articles')
-                ->orderByDesc('sort_order')
-                ->orderBy('title')
-                ->get(),
-            'articles' => Article::query()
-                ->with('category')
-                ->where('is_visible', true)
-                ->orderByDesc('published_at')
-                ->orderByDesc('sort_order')
-                ->get(),
-        ]);
-    }
-
-    public function article(string $slug): View
-    {
-        return view('pages.articles.show', [
-            'article' => Article::query()
-                ->with('category')
-                ->where('is_visible', true)
-                ->where(fn ($query) => $query
-                    ->where('slug', $slug)
-                    ->when(is_numeric($slug), fn ($query) => $query->orWhere('old_id', (int) $slug)))
-                ->firstOrFail(),
-        ]);
     }
 
     private function firstImage(?object $model): ?string

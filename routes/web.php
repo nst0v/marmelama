@@ -4,24 +4,42 @@ use App\Http\Controllers\SiteController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [SiteController::class, 'home'])->name('home');
-Route::get('/pets', [SiteController::class, 'kittens'])->name('kittens.index');
-Route::get('/pets/{slug}', [SiteController::class, 'kitten'])->name('kittens.show');
-Route::get('/pomet', [SiteController::class, 'litters'])->name('litters.index');
-Route::get('/pomet/{slug}', [SiteController::class, 'litter'])->name('litters.show');
+Route::get('/kittens', [SiteController::class, 'kittens'])->name('kittens.index');
+Route::get('/kittens/{slug}', [SiteController::class, 'kitten'])->name('kittens.show');
+Route::get('/litters', [SiteController::class, 'litters'])->name('litters.index');
+Route::get('/litters/{slug}', [SiteController::class, 'litter'])->name('litters.show');
 Route::get('/parents/{sex}', [SiteController::class, 'parents'])->name('parents.index');
 Route::get('/parents/{sex}/{slug}', [SiteController::class, 'parent'])->name('parents.show');
 Route::get('/reviews', [SiteController::class, 'reviews'])->name('reviews');
-Route::get('/dostavka', [SiteController::class, 'delivery'])->name('delivery');
+Route::get('/delivery', [SiteController::class, 'delivery'])->name('delivery');
 Route::get('/contacts', [SiteController::class, 'contacts'])->name('contacts');
-Route::post('/contacts', [SiteController::class, 'sendContact'])->name('contacts.send');
+Route::post('/contacts', [SiteController::class, 'sendContact'])
+    ->middleware('throttle:5,1')
+    ->name('contacts.send');
 Route::get('/gallery', [SiteController::class, 'gallery'])->name('gallery');
 Route::get('/news', [SiteController::class, 'news'])->name('news.index');
 Route::get('/news/{slug}', [SiteController::class, 'newsPost'])->name('news.show');
-Route::get('/archive', [SiteController::class, 'archive'])->name('archive');
-Route::get('/articles', [SiteController::class, 'articles'])->name('articles');
-Route::get('/article/{slug}', [SiteController::class, 'article'])->name('articles.show');
+Route::get('/archive', fn () => redirect()->route('kittens.index', [
+    ...request()->query(),
+    'status' => 'sold',
+], 301))->name('archive');
 Route::get('/politics', fn () => view('pages.placeholder', [
     'title' => 'Политика конфиденциальности',
     'text' => 'Страница будет заполнена юридическим текстом перед публикацией.',
 ]))->name('politics');
-Route::get('/{slug}', [SiteController::class, 'page'])->where('slug', '[A-Za-z0-9_-]+')->name('content.show');
+
+Route::get('/pets', fn () => redirect()->route('kittens.index', request()->query(), 301));
+Route::get('/pets/{slug}', fn (string $slug) => redirect()->route('kittens.show', [
+    'slug' => $slug,
+    ...request()->query(),
+], 301));
+Route::get('/pomet', fn () => redirect()->route('litters.index', request()->query(), 301));
+Route::get('/pomet/{slug}', fn (string $slug) => redirect()->route('litters.show', [
+    'slug' => $slug,
+    ...request()->query(),
+], 301));
+Route::get('/dostavka', fn () => redirect()->route('delivery', request()->query(), 301));
+
+Route::get('/{slug}', [SiteController::class, 'page'])
+    ->whereIn('slug', ['about', 'video'])
+    ->name('content.show');

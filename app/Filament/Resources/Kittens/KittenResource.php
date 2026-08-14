@@ -29,9 +29,11 @@ class KittenResource extends Resource
 
     protected static ?string $navigationLabel = 'Котята';
 
-    protected static ?string $modelLabel = 'котенок';
+    protected static ?string $modelLabel = 'котёнок';
 
     protected static ?string $pluralModelLabel = 'котята';
+
+    protected static ?string $recordTitleAttribute = 'name';
 
     public static function getNavigationIcon(): string|BackedEnum|Htmlable|null
     {

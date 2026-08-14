@@ -30,6 +30,8 @@ class SlideResource extends Resource
 
     protected static ?string $pluralModelLabel = 'слайды';
 
+    protected static ?string $recordTitleAttribute = 'title';
+
     public static function form(Schema $schema): Schema
     {
         return SlideForm::configure($schema);

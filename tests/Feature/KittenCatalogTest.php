@@ -39,8 +39,9 @@ class KittenCatalogTest extends TestCase
         $response->assertDontSeeText('45 000 ₽');
         $response->assertSeeText('Смотреть анкету');
         $response->assertSee(route('kittens.show', $kitten->slug), false);
-        $response->assertSee('kitten-filter-hot', false);
-        $response->assertSee('kitten-filter-fire', false);
+        $response->assertSeeText('Ищут семью');
+        $response->assertDontSee('kitten-filter-hot', false);
+        $response->assertDontSee('kitten-filter-fire', false);
     }
 
     public function test_catalog_combines_status_sex_and_normalized_color_filters(): void

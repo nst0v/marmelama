@@ -2,9 +2,14 @@
 
 namespace App\Filament\Resources\BreedingCats\Schemas;
 
+use App\Models\BreedingCat;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Tabs;
+use Filament\Schemas\Components\Tabs\Tab;
 use Filament\Schemas\Schema;
 
 class BreedingCatInfolist
@@ -13,97 +18,104 @@ class BreedingCatInfolist
     {
         return $schema
             ->components([
-                TextEntry::make('old_id')
-                    ->label('Внутренний номер')
-                    ->numeric()
-                    ->placeholder('-'),
-                ImageEntry::make('cover_image')
-                    ->label('Главное фото')
-                    ->disk('public')
-                    ->placeholder('-'),
-                TextEntry::make('name')
-                    ->label('Имя'),
-                TextEntry::make('slug')
-                    ->label('ЧПУ'),
-                TextEntry::make('sex')
-                    ->label('Пол')
-                    ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'male' => 'Кот',
-                        'female' => 'Кошка',
-                        default => 'Не указан',
-                    }),
-                IconEntry::make('is_active')
-                    ->label('В племенной работе')
-                    ->boolean(),
-                TextEntry::make('title')
-                    ->label('Титулы / награды')
-                    ->placeholder('-'),
-                TextEntry::make('color')
-                    ->label('Окрас')
-                    ->placeholder('-'),
-                TextEntry::make('birthday')
-                    ->label('Дата рождения')
-                    ->date()
-                    ->placeholder('-'),
-                TextEntry::make('father_name')
-                    ->label('Отец')
-                    ->placeholder('-'),
-                TextEntry::make('mother_name')
-                    ->label('Мать')
-                    ->placeholder('-'),
-                TextEntry::make('genetic_tests')
-                    ->label('Генетические тесты')
-                    ->placeholder('-')
+                Section::make('Производитель')
+                    ->schema([
+                        Grid::make(['default' => 1, 'lg' => 3])
+                            ->schema([
+                                ImageEntry::make('cover_image')
+                                    ->label('Главное фото')
+                                    ->disk('public')
+                                    ->imageSize(240)
+                                    ->square()
+                                    ->placeholder('Фото нет'),
+                                Grid::make(2)
+                                    ->schema([
+                                        TextEntry::make('sex')
+                                            ->label('Пол')
+                                            ->badge()
+                                            ->color(fn (?string $state): string => match ($state) {
+                                                'male' => 'info',
+                                                'female' => 'warning',
+                                                default => 'gray',
+                                            })
+                                            ->formatStateUsing(fn (?string $state): string => match ($state) {
+                                                'male' => 'Кот',
+                                                'female' => 'Кошка',
+                                                default => 'Не указан',
+                                            }),
+                                        IconEntry::make('is_visible')
+                                            ->label('Опубликован на сайте')
+                                            ->boolean(),
+                                        IconEntry::make('is_active')
+                                            ->label('В племенной работе')
+                                            ->boolean(),
+                                        TextEntry::make('color')
+                                            ->label('Окрас')
+                                            ->placeholder('Не указан'),
+                                        TextEntry::make('birthday')
+                                            ->label('Дата рождения')
+                                            ->date('d.m.Y')
+                                            ->placeholder('Не указана'),
+                                        TextEntry::make('title')
+                                            ->label('Титулы и награды')
+                                            ->placeholder('Не указаны'),
+                                        TextEntry::make('litters_count')
+                                            ->label('Связанных помётов')
+                                            ->state(fn (BreedingCat $record): int => match ($record->sex) {
+                                                'male' => $record->fatherLitters()->count(),
+                                                'female' => $record->motherLitters()->count(),
+                                                default => $record->fatherLitters()->count() + $record->motherLitters()->count(),
+                                            })
+                                            ->badge(),
+                                    ])
+                                    ->columnSpan(['lg' => 2]),
+                            ]),
+                    ])
                     ->columnSpanFull(),
-                TextEntry::make('breeder')
-                    ->label('Заводчик')
-                    ->placeholder('-'),
-                TextEntry::make('owner')
-                    ->label('Владелец')
-                    ->placeholder('-'),
-                TextEntry::make('description')
-                    ->label('Краткое описание')
-                    ->placeholder('-')
+                Section::make('Родословная и здоровье')
+                    ->schema([
+                        Grid::make(2)
+                            ->schema([
+                                TextEntry::make('father_name')->label('Отец')->placeholder('Не указан'),
+                                TextEntry::make('mother_name')->label('Мать')->placeholder('Не указана'),
+                                TextEntry::make('breeder')->label('Заводчик')->placeholder('Не указан'),
+                                TextEntry::make('owner')->label('Владелец')->placeholder('Не указан'),
+                                TextEntry::make('genetic_tests')
+                                    ->label('Генетические тесты')
+                                    ->prose()
+                                    ->placeholder('Не заполнены')
+                                    ->columnSpanFull(),
+                            ]),
+                    ])
                     ->columnSpanFull(),
-                TextEntry::make('content')
-                    ->label('Полное описание')
-                    ->placeholder('-')
+                Tabs::make('Материалы')
+                    ->tabs([
+                        Tab::make('Описание')
+                            ->schema([
+                                TextEntry::make('description')
+                                    ->label('Кратко')
+                                    ->prose()
+                                    ->placeholder('Краткое описание не заполнено')
+                                    ->columnSpanFull(),
+                                TextEntry::make('content')
+                                    ->label('Полное описание')
+                                    ->html()
+                                    ->prose()
+                                    ->placeholder('Полное описание не заполнено')
+                                    ->columnSpanFull(),
+                            ]),
+                        Tab::make('Фотографии')
+                            ->schema([
+                                ImageEntry::make('images')
+                                    ->hiddenLabel()
+                                    ->disk('public')
+                                    ->imageHeight(180)
+                                    ->wrap()
+                                    ->placeholder('Фотографий нет')
+                                    ->columnSpanFull(),
+                            ]),
+                    ])
                     ->columnSpanFull(),
-                TextEntry::make('images')
-                    ->label('Все фото (пути)')
-                    ->placeholder('-')
-                    ->columnSpanFull(),
-                TextEntry::make('image_alt')
-                    ->label('Описание фото для поисковиков')
-                    ->placeholder('-'),
-                TextEntry::make('image_title')
-                    ->label('Подсказка фото')
-                    ->placeholder('-'),
-                TextEntry::make('meta_title')
-                    ->label('Заголовок для поисковиков')
-                    ->placeholder('-'),
-                TextEntry::make('meta_description')
-                    ->label('Описание для поисковиков')
-                    ->placeholder('-')
-                    ->columnSpanFull(),
-                TextEntry::make('meta_keywords')
-                    ->label('Ключевые слова')
-                    ->placeholder('-')
-                    ->columnSpanFull(),
-                TextEntry::make('sort_order')
-                    ->label('Приоритет')
-                    ->numeric(),
-                IconEntry::make('is_visible')
-                    ->label('Показывать на сайте')
-                    ->boolean(),
-                TextEntry::make('created_at')
-                    ->label('Создан')
-                    ->dateTime()
-                    ->placeholder('-'),
-                TextEntry::make('updated_at')
-                    ->label('Обновлен')
-                    ->dateTime()
-                    ->placeholder('-'),
             ]);
     }
 }

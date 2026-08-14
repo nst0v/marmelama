@@ -2,13 +2,14 @@
 
 namespace App\Filament\Resources\BreedingCats\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
+use App\Models\BreedingCat;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Columns\ToggleColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 
 class BreedingCatsTable
@@ -16,76 +17,73 @@ class BreedingCatsTable
     public static function configure(Table $table): Table
     {
         return $table
-            ->defaultSort('sort_order', 'desc')
+            ->defaultSort('name')
             ->columns([
                 ImageColumn::make('cover_image')
                     ->label('Фото')
                     ->disk('public')
+                    ->imageSize(64)
                     ->square(),
                 TextColumn::make('name')
-                    ->label('Имя')
-                    ->searchable(),
-                TextColumn::make('slug')
-                    ->label('ЧПУ')
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->searchable(),
+                    ->label('Производитель')
+                    ->description(fn (BreedingCat $record): ?string => $record->title)
+                    ->wrap()
+                    ->searchable(['name', 'title']),
                 TextColumn::make('sex')
                     ->label('Пол')
-                    ->formatStateUsing(fn (?string $state): string => $state === 'male' ? 'Кот' : 'Кошка')
-                    ->searchable(),
-                IconColumn::make('is_active')
-                    ->label('Активен')
-                    ->boolean(),
-                TextColumn::make('title')
-                    ->label('Титулы')
-                    ->searchable(),
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'male' => 'info',
+                        'female' => 'warning',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(fn (?string $state): string => match ($state) {
+                        'male' => 'Кот',
+                        'female' => 'Кошка',
+                        default => 'Не указан',
+                    }),
+                ToggleColumn::make('is_active')
+                    ->label('В племенной работе'),
                 TextColumn::make('color')
                     ->label('Окрас')
                     ->searchable(),
                 TextColumn::make('birthday')
                     ->label('Дата рождения')
-                    ->date()
+                    ->date('d.m.Y')
+                    ->placeholder('—')
                     ->sortable(),
+                ToggleColumn::make('is_visible')
+                    ->label('На сайте'),
                 TextColumn::make('breeder')
                     ->label('Заводчик')
-                    ->searchable(),
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('owner')
                     ->label('Владелец')
-                    ->searchable(),
-                TextColumn::make('sort_order')
-                    ->label('Приоритет')
-                    ->numeric()
-                    ->sortable(),
-                IconColumn::make('is_visible')
-                    ->label('Виден')
-                    ->boolean(),
-                TextColumn::make('old_id')
-                    ->label('Внутренний номер')
-                    ->numeric()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('created_at')
-                    ->label('Создан')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->label('Обновлен')
-                    ->dateTime()
-                    ->sortable()
+                    ->searchable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                SelectFilter::make('sex')
+                    ->label('Пол')
+                    ->options([
+                        'male' => 'Кот',
+                        'female' => 'Кошка',
+                    ]),
+                TernaryFilter::make('is_active')
+                    ->label('Племенная работа')
+                    ->placeholder('Все производители')
+                    ->trueLabel('Активные')
+                    ->falseLabel('Не участвуют'),
+                TernaryFilter::make('is_visible')
+                    ->label('Публикация')
+                    ->placeholder('Все производители')
+                    ->trueLabel('На сайте')
+                    ->falseLabel('Скрытые'),
             ])
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
-            ])
-            ->toolbarActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
             ]);
     }
 }

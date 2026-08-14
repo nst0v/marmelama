@@ -8,4 +8,6 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateLitter extends CreateRecord
 {
     protected static string $resource = LitterResource::class;
+
+    protected static bool $canCreateAnother = false;
 }

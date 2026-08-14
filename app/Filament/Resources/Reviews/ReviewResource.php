@@ -32,6 +32,8 @@ class ReviewResource extends Resource
 
     protected static ?string $pluralModelLabel = 'отзывы';
 
+    protected static ?string $recordTitleAttribute = 'author_name';
+
     public static function form(Schema $schema): Schema
     {
         return ReviewForm::configure($schema);
