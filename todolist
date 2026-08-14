@@ -1,5 +1,528 @@
-1. проверить и убрать неиспользующиеся роуты, страницы, код, базы, таких очень много - например вопросы, файлы
-2. в админке сузить функционал и сделать только обычные флоу на создание котенков пометов и смена слайдов
-3. изменить дизайн просмотра отзывов котят и тд в админке, щас простой слишком
-4. убрать огонек нахрен
-5.  вот эти поля лишние типо чпу и подобное надо убрать оставить только нужные пользователю поля и главное понятные ему
+Ниже безопасный порядок полной выкладки с пересозданием продовой MySQL-базы. Предполагаю Linux/VPS, Nginx, PHP-FPM 8.3 и проект в `/var/www/marmelama`.
+
+Главное: `php artisan migrate:fresh --force` полностью удалит все таблицы, включая пользователей админки, сессии и текущий контент. Сначала обязательно сделай резервную копию и убедись, что импортируемый старый дамп актуален.
+
+## 1. Подготовить изменения локально
+
+Сейчас изменения ещё не закоммичены: есть новые миграции, удаления старых разделов и другие правки. Пока они не попадут в Git, прод их не получит.
+
+Выполни локально:
+
+```bash
+cd /home/github/marmelama
+
+git status --short
+git diff --check
+composer validate --no-check-publish
+php artisan test
+```
+
+На текущем состоянии я уже проверил:
+
+```text
+62 теста успешно
+367 проверок успешно
+composer.json валиден
+route:cache и view:cache работают
+```
+
+Перед коммитом обрати внимание на файл `todolist`: он сейчас не отслеживается Git. Реши, нужно ли его публиковать.
+
+Добавить основные изменения:
+
+```bash
+git add README.md app database public resources routes tests composer.json composer.lock
+
+git status --short
+git diff --cached --stat
+git diff --cached
+```
+
+Если всё правильно:
+
+```bash
+git commit -m "Prepare production release and simplify admin panel"
+git push origin main
+```
+
+Не добавляй в Git:
+
+- `.env`;
+- SQL-дампы;
+- пароли;
+- `old_site`;
+- `storage/app/public`;
+- `public/storage`.
+
+## 2. Что проверить и изменить в самом проекте
+
+Перед коммитом проверь реквизиты питомника.
+
+Телефон, контактный email и ссылка MAX после импорта будут редактироваться через `/admin` → «Контакты».
+
+Некоторые значения пока жёстко прописаны в [AppServiceProvider.php](/home/github/marmelama/app/Providers/AppServiceProvider.php:27):
+
+- название `МарМелАма`;
+- город `Омск`;
+- резервные телефон и email;
+- ВКонтакте;
+- Telegram;
+- WhatsApp;
+- резервная ссылка MAX.
+
+Важно: ссылка WhatsApp сейчас не формируется из телефона в админке. Если номер поменяется, нужно отдельно поменять `wa.me/...` в коде.
+
+Также проверь:
+
+- имя владельца и тексты на [главной странице](/home/github/marmelama/resources/views/pages/home.blade.php:76);
+- тексты в подвале;
+- ссылки на соцсети;
+- ссылку разработчика в подвале;
+- метаописания;
+- адрес доставки и упоминания Омска.
+
+Страница `/politics` сейчас является заглушкой в [routes/web.php](/home/github/marmelama/routes/web.php:45). Перед открытием сайта её нужно заменить согласованной политикой обработки персональных данных, потому что контактная форма собирает имя, телефон, email и сообщение.
+
+## 3. Подготовить сервер
+
+Минимальные требования:
+
+```text
+PHP 8.3+
+Composer 2
+MySQL 8 или MariaDB
+pdo_mysql
+mbstring
+openssl
+fileinfo
+ctype
+json
+tokenizer
+xml
+```
+
+Проверка:
+
+```bash
+php -v
+composer -V
+php -m
+```
+
+Для загрузки фотографий админка допускает файлы до 10 МБ. В `php.ini` рекомендуется:
+
+```ini
+upload_max_filesize = 12M
+post_max_size = 20M
+memory_limit = 256M
+```
+
+После изменения перезапусти PHP-FPM.
+
+Для Nginx понадобится:
+
+```nginx
+server {
+    server_name xn--80aaas4adbd5a.xn--p1ai;
+
+    root /var/www/marmelama/public;
+    index index.php;
+
+    client_max_body_size 20M;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+```
+
+Папка сайта в настройках домена должна быть именно:
+
+```text
+/var/www/marmelama/public
+```
+
+Не корень репозитория.
+
+Также настрой HTTPS-сертификат. Для домена `мармелама.рф` ASCII-запись:
+
+```text
+xn--80aaas4adbd5a.xn--p1ai
+```
+
+## 4. Установить код на сервер
+
+Для первого деплоя:
+
+```bash
+cd /var/www
+
+git clone git@github.com:nst0v/marmelama.git
+cd marmelama
+
+composer install --no-dev --prefer-dist --optimize-autoloader
+composer check-platform-reqs --no-dev
+
+cp .env.example .env
+php artisan key:generate
+```
+
+Если проект уже установлен:
+
+```bash
+cd /var/www/marmelama
+
+git status --short
+git pull --ff-only origin main
+composer install --no-dev --prefer-dist --optimize-autoloader
+```
+
+Если `git status` на сервере показывает изменения, не перезаписывай их автоматически — сначала выясни, откуда они появились.
+
+Node.js и `npm build` этому проекту не нужны.
+
+## 5. Настроить продовый `.env`
+
+Пример:
+
+```env
+APP_NAME="МарМелАма"
+APP_ENV=production
+APP_KEY=base64:СГЕНЕРИРОВАННЫЙ_КЛЮЧ
+APP_DEBUG=false
+APP_URL=https://xn--80aaas4adbd5a.xn--p1ai
+
+APP_LOCALE=ru
+APP_FALLBACK_LOCALE=ru
+APP_FAKER_LOCALE=ru_RU
+
+APP_MAINTENANCE_DRIVER=file
+
+LOG_CHANNEL=stack
+LOG_STACK=single
+LOG_LEVEL=warning
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=marmelama
+DB_USERNAME=marmelama
+DB_PASSWORD="СЛОЖНЫЙ_ПАРОЛЬ"
+
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+SESSION_SECURE_COOKIE=true
+SESSION_DOMAIN=null
+
+CACHE_STORE=database
+QUEUE_CONNECTION=database
+FILESYSTEM_DISK=local
+```
+
+`APP_KEY`:
+
+- на первом деплое создаётся командой `php artisan key:generate`;
+- на последующих деплоях не меняется;
+- обязательно сохрани его вместе с резервной копией `.env`.
+
+Если пароль БД содержит `#`, пробелы или специальные символы, заключи его в кавычки.
+
+### Настройка почты
+
+В [.env.example](/home/github/marmelama/.env.example:50) стоит:
+
+```env
+MAIL_MAILER=log
+```
+
+С таким значением контактная форма покажет «Сообщение отправлено», но письмо попадёт только в Laravel-лог. Для реальной отправки нужен SMTP:
+
+```env
+MAIL_MAILER=smtp
+MAIL_SCHEME=smtp
+MAIL_HOST=smtp.example.com
+MAIL_PORT=587
+MAIL_USERNAME="SMTP_LOGIN"
+MAIL_PASSWORD="SMTP_PASSWORD"
+MAIL_FROM_ADDRESS="site@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+```
+
+Значения возьми у почтового провайдера. Для SMTPS на порту 465 обычно используется:
+
+```env
+MAIL_SCHEME=smtps
+MAIL_PORT=465
+```
+
+## 6. Подготовить старый дамп и фотографии
+
+Не импортируй старый дамп напрямую командой вида:
+
+```bash
+mysql marmelama < marmelama_rf.sql
+```
+
+У старой и новой базы разные структуры. Нужно использовать проектную команду `site:import-dump`.
+
+Рекомендуемая структура на сервере:
+
+```text
+/var/www/marmelama/old_site/marmelama_rf.sql
+/var/www/marmelama/old_site/file/...
+```
+
+Папка `old_site` исключена из Git.
+
+Для фотографий используй именно относительный путь:
+
+```text
+--image-source=old_site/file
+```
+
+Текущая реализация импортера разрешает путь к изображениям относительно корня проекта. Поэтому абсолютный путь вроде `/srv/import/file` для `--image-source` использовать не стоит.
+
+До очистки базы проверь дамп:
+
+```bash
+cd /var/www/marmelama
+
+php artisan optimize:clear
+
+php artisan site:import-dump \
+    old_site/marmelama_rf.sql \
+    --dry-run
+```
+
+Команда должна показать количество записей и закончиться сообщением:
+
+```text
+Dry run finished. Nothing was written.
+```
+
+## 7. Сделать резервную копию прода
+
+Сначала включи технический режим:
+
+```bash
+cd /var/www/marmelama
+php artisan down --retry=60
+```
+
+Резервная копия базы:
+
+```bash
+sudo mkdir -p /srv/backups/marmelama
+
+mysqldump \
+    --host=127.0.0.1 \
+    --user=DB_USER \
+    --password \
+    --single-transaction \
+    --routines \
+    --triggers \
+    --default-character-set=utf8mb4 \
+    DB_NAME \
+    | gzip > "/srv/backups/marmelama/database-$(date +%F-%H%M).sql.gz"
+```
+
+`DB_USER` и `DB_NAME` замени на реальные значения. Пароль команда запросит интерактивно.
+
+Резервная копия загруженных изображений:
+
+```bash
+sudo tar \
+    -C /var/www/marmelama/storage/app \
+    -czf "/srv/backups/marmelama/media-$(date +%F-%H%M).tar.gz" \
+    public
+```
+
+Сохрани `.env`:
+
+```bash
+sudo cp \
+    /var/www/marmelama/.env \
+    "/srv/backups/marmelama/env-$(date +%F-%H%M)"
+```
+
+Проверь, что файлы действительно созданы и имеют ненулевой размер:
+
+```bash
+sudo ls -lh /srv/backups/marmelama
+gzip -t /srv/backups/marmelama/database-НУЖНАЯ-ДАТА.sql.gz
+```
+
+Если в действующей продовой базе уже есть новые записи, созданные через новую админку, старый дамп их не содержит. После пересборки они пропадут. В таком случае сначала нужно решить, как переносить эти записи.
+
+## 8. Проверить, к какой базе подключён Laravel
+
+Непосредственно перед очисткой:
+
+```bash
+php artisan tinker --execute="dump(
+    app()->environment(),
+    \Illuminate\Support\Facades\DB::connection()->getDatabaseName()
+);"
+```
+
+Ожидаемый результат:
+
+```text
+"production"
+"marmelama"
+```
+
+Если показано другое окружение или другая база — остановись. Следующая команда удалит таблицы именно из показанной базы.
+
+## 9. Полностью пересобрать базу
+
+Разрушительная команда:
+
+```bash
+php artisan migrate:fresh --force
+```
+
+Она:
+
+- удалит все текущие таблицы;
+- выполнит все миграции с начала;
+- создаст таблицы кеша, очередей и сессий;
+- удалит всех старых пользователей админки;
+- сформирует итоговую актуальную схему.
+
+Ваши новые миграции при этом:
+
+| Миграция | Результат |
+|---|---|
+| `2026_06_17_191500` | добавляет настройку ссылки MAX |
+| `2026_08_14_120000` | удаляет таблицы статей, категорий, комментариев и вопросов |
+| `2026_08_14_121000` | удаляет неиспользуемые legacy-настройки |
+| `2026_08_14_122000` | удаляет неиспользуемые контентные блоки |
+| `2026_08_14_123000` | гарантирует наличие телефона, email и MAX |
+
+Не удаляй старые миграции: при `migrate:fresh` Laravel должен пройти всю историю и получить правильную итоговую схему.
+
+## 10. Импортировать контент и изображения
+
+После миграций:
+
+```bash
+php artisan site:import-dump \
+    old_site/marmelama_rf.sql \
+    --fresh \
+    --image-source=old_site/file
+```
+
+Здесь два разных понятия:
+
+- `migrate:fresh` пересоздаёт структуру всей базы;
+- `site:import-dump --fresh` очищает только импортируемые контентные таблицы и заполняет их из старого дампа.
+
+Если нужна полностью пустая база без старого контента, эту команду пропусти.
+
+## 11. Создать администратора
+
+Только после `migrate:fresh`:
+
+```bash
+php artisan make:filament-user
+```
+
+Введи имя, email и сложный уникальный пароль. Сохрани данные в менеджере паролей.
+
+Вход:
+
+```text
+https://мармелама.рф/admin
+```
+
+## 12. Storage, права и кеши
+
+Создай публичную ссылку на изображения:
+
+```bash
+php artisan storage:link
+```
+
+Права для Nginx/PHP-FPM:
+
+```bash
+sudo chown -R deploy:www-data storage bootstrap/cache
+sudo chmod -R ug+rwX storage bootstrap/cache
+```
+
+`deploy` замени на пользователя, под которым выкладывается проект.
+
+Собери продовые кеши:
+
+```bash
+php artisan optimize:clear
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+## 13. Проверить до открытия сайта
+
+Проверка миграций и маршрутов:
+
+```bash
+php artisan migrate:status
+php artisan route:list --path=admin
+php artisan route:list --path=up
+```
+
+Проверь логи:
+
+```bash
+tail -n 100 storage/logs/laravel.log
+```
+
+После этого открой сайт:
+
+```bash
+php artisan up
+```
+
+Проверка HTTP:
+
+```bash
+curl -fsS https://xn--80aaas4adbd5a.xn--p1ai/up
+curl -I https://xn--80aaas4adbd5a.xn--p1ai/
+curl -I https://xn--80aaas4adbd5a.xn--p1ai/admin
+```
+
+В браузере обязательно проверь:
+
+1. Главную страницу и слайды.
+2. Котят, помёты, производителей, отзывы, новости и галерею.
+3. Отображение импортированных фотографий.
+4. Вход в `/admin`.
+5. Загрузку новой тестовой фотографии.
+6. Телефон, email и ссылку MAX в разделе «Контакты».
+7. Отправку формы контактов и реальное получение письма.
+8. HTTPS без смешанного содержимого.
+9. `/politics`.
+10. Старые адреса `/pets`, `/pomet`, `/dostavka`.
+11. `storage/logs/laravel.log` после всех проверок.
+
+## Чего нельзя делать
+
+- Не запускай `migrate:fresh --force`, пока не проверены имя базы и резервная копия.
+- Не создавай администратора до `migrate:fresh` — он будет удалён.
+- Не импортируй legacy SQL напрямую в новую базу.
+- Не создавай новый `APP_KEY` при каждом обновлении.
+- Не коммить `.env`, дамп или фотографии.
+- Не открывай сайт командой `artisan up`, если импорт завершился ошибкой.
+- Не удаляй исторические миграции.
+
+Базовая серверная инструкция уже находится в [README.md](/home/github/marmelama/README.md:217), но порядок выше учитывает именно полную очистку базы, новые удаляющие миграции, повторное создание админа, фотографии и SMTP.
