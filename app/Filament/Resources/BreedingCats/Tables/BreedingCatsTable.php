@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\BreedingCats\Tables;
 
 use App\Models\BreedingCat;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\ImageColumn;
@@ -82,8 +83,16 @@ class BreedingCatsTable
                     ->falseLabel('Скрытые'),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                EditAction::make()
+                    ->label('Изменить')
+                    ->button(),
+                ViewAction::make()
+                    ->label('Смотреть'),
+                DeleteAction::make()
+                    ->label('Удалить')
+                    ->modalHeading(fn (BreedingCat $record): string => 'Удалить производителя «'.$record->name.'»?')
+                    ->modalDescription('Производитель исчезнет с сайта. Связанные помёты и котята останутся в базе.')
+                    ->modalSubmitActionLabel('Удалить навсегда'),
             ]);
     }
 }

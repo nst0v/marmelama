@@ -4,6 +4,7 @@ namespace App\Filament\Resources\BreedingCats\Pages;
 
 use App\Filament\Resources\BreedingCats\BreedingCatResource;
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Icons\Heroicon;
@@ -15,8 +16,12 @@ class ViewBreedingCat extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            EditAction::make()
+                ->label('Изменить данные')
+                ->icon(Heroicon::PencilSquare)
+                ->button(),
             Action::make('preview')
-                ->label('Посмотреть на сайте')
+                ->label('На сайте')
                 ->icon(Heroicon::ArrowTopRightOnSquare)
                 ->url(fn (): string => route('parents.show', [
                     'sex' => $this->getRecord()->sex === 'male' ? '1' : '0',
@@ -26,7 +31,11 @@ class ViewBreedingCat extends ViewRecord
                 ->visible(fn (): bool => filled($this->getRecord()->slug)
                     && in_array($this->getRecord()->sex, ['male', 'female'], true)
                     && $this->getRecord()->is_visible),
-            EditAction::make(),
+            DeleteAction::make()
+                ->label('Удалить')
+                ->modalHeading(fn (): string => 'Удалить производителя «'.$this->getRecord()->name.'»?')
+                ->modalDescription('Производитель исчезнет с сайта. Связанные помёты и котята останутся в базе.')
+                ->modalSubmitActionLabel('Удалить навсегда'),
         ];
     }
 }

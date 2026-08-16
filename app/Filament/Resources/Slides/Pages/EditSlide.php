@@ -13,7 +13,11 @@ class EditSlide extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            DeleteAction::make()
+                ->label('Удалить слайд')
+                ->modalHeading(fn (): string => 'Удалить слайд «'.($this->getRecord()->title ?: 'Без названия').'»?')
+                ->modalDescription('Слайд и его изображение будут удалены без возможности восстановления.')
+                ->modalSubmitActionLabel('Удалить навсегда'),
         ];
     }
 }

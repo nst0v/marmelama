@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Litters\Tables;
 
 use App\Models\Litter;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\ImageColumn;
@@ -111,8 +112,16 @@ class LittersTable
                     ->falseLabel('Черновики'),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                EditAction::make()
+                    ->label('Изменить')
+                    ->button(),
+                ViewAction::make()
+                    ->label('Смотреть'),
+                DeleteAction::make()
+                    ->label('Удалить')
+                    ->modalHeading(fn (Litter $record): string => 'Удалить помёт «'.$record->title.'»?')
+                    ->modalDescription('Помёт исчезнет с сайта. Его котята останутся в разделе «Котята» без привязки к помёту.')
+                    ->modalSubmitActionLabel('Удалить навсегда'),
             ]);
     }
 }

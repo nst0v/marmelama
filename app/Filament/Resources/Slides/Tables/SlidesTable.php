@@ -36,8 +36,14 @@ class SlidesTable
                     ->label('На сайте'),
             ])
             ->recordActions([
-                EditAction::make(),
-                DeleteAction::make(),
+                EditAction::make()
+                    ->label('Изменить')
+                    ->button(),
+                DeleteAction::make()
+                    ->label('Удалить')
+                    ->modalHeading(fn (Slide $record): string => 'Удалить слайд «'.($record->title ?: 'Без названия').'»?')
+                    ->modalDescription('Слайд и его изображение будут удалены без возможности восстановления.')
+                    ->modalSubmitActionLabel('Удалить навсегда'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

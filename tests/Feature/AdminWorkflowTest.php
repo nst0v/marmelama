@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\BreedingCats\Pages\CreateBreedingCat;
+use App\Filament\Resources\BreedingCats\Pages\EditBreedingCat;
 use App\Filament\Resources\BreedingCats\Pages\ListBreedingCats;
 use App\Filament\Resources\BreedingCats\Pages\ViewBreedingCat;
 use App\Filament\Resources\ContactRequests\Pages\EditContactRequest;
@@ -23,6 +24,7 @@ use App\Filament\Resources\Reviews\Pages\EditReview;
 use App\Filament\Resources\Reviews\Pages\ListReviews;
 use App\Filament\Resources\Reviews\Pages\ViewReview;
 use App\Filament\Resources\Slides\Pages\CreateSlide;
+use App\Filament\Resources\Slides\Pages\EditSlide;
 use App\Filament\Resources\Slides\Pages\ListSlides;
 use App\Filament\Widgets\AdminQuickActions;
 use App\Models\BreedingCat;
@@ -159,6 +161,67 @@ class AdminWorkflowTest extends TestCase
             ->assertDontSee('Добавить котёнка')
             ->assertDontSee('Создать помёт')
             ->assertDontSee('Добавить слайд');
+    }
+
+    public function test_owner_can_delete_breeding_cats_litters_and_slides_without_deleting_kittens(): void
+    {
+        Storage::fake('public');
+
+        $parent = BreedingCat::query()->create([
+            'name' => 'Производитель для удаления',
+            'slug' => 'parent-for-admin-delete',
+            'sex' => 'male',
+            'is_visible' => false,
+        ]);
+        $litter = Litter::query()->create([
+            'title' => 'Помёт для удаления',
+            'slug' => 'litter-for-admin-delete',
+            'father_id' => $parent->id,
+            'status' => 'archive',
+            'is_visible' => false,
+        ]);
+        $kitten = Kitten::query()->create([
+            'litter_id' => $litter->id,
+            'name' => 'Котёнок остаётся',
+            'slug' => 'kitten-survives-parent-deletion',
+            'sex' => 'male',
+            'status' => 'sold',
+            'is_visible' => false,
+        ]);
+        Storage::disk('public')->put('media/slides/delete-me.jpg', 'slide');
+        $slide = Slide::query()->create([
+            'title' => 'Слайд для удаления',
+            'placement' => 'home',
+            'image' => 'media/slides/delete-me.jpg',
+            'is_visible' => false,
+        ]);
+
+        Livewire::test(ListBreedingCats::class)
+            ->assertTableActionExists('delete', record: $parent);
+        Livewire::test(EditBreedingCat::class, ['record' => $parent->getRouteKey()])
+            ->assertActionHasLabel('delete', 'Удалить производителя')
+            ->callAction('delete');
+
+        $this->assertDatabaseMissing('breeding_cats', ['id' => $parent->id]);
+        $this->assertNull($litter->refresh()->father_id);
+
+        Livewire::test(ListLitters::class)
+            ->assertTableActionExists('delete', record: $litter);
+        Livewire::test(EditLitter::class, ['record' => $litter->getRouteKey()])
+            ->assertActionHasLabel('delete', 'Удалить помёт')
+            ->callAction('delete');
+
+        $this->assertDatabaseMissing('litters', ['id' => $litter->id]);
+        $this->assertNull($kitten->refresh()->litter_id);
+
+        Livewire::test(ListSlides::class)
+            ->assertTableActionExists('delete', record: $slide);
+        Livewire::test(EditSlide::class, ['record' => $slide->getRouteKey()])
+            ->assertActionHasLabel('delete', 'Удалить слайд')
+            ->callAction('delete');
+
+        $this->assertDatabaseMissing('slides', ['id' => $slide->id]);
+        Storage::disk('public')->assertMissing('media/slides/delete-me.jpg');
     }
 
     public function test_redesigned_operational_lists_and_detail_pages_render(): void
