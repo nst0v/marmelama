@@ -31,6 +31,7 @@ class AdminScopeTest extends TestCase
     {
         $retainedRouteNames = [
             'filament.admin.resources.kittens.index',
+            'filament.admin.resources.contact-requests.index',
             'filament.admin.resources.litters.index',
             'filament.admin.resources.slides.index',
             'filament.admin.resources.reviews.index',

@@ -5,6 +5,9 @@ namespace Tests\Feature;
 use App\Filament\Resources\BreedingCats\Pages\CreateBreedingCat;
 use App\Filament\Resources\BreedingCats\Pages\ListBreedingCats;
 use App\Filament\Resources\BreedingCats\Pages\ViewBreedingCat;
+use App\Filament\Resources\ContactRequests\Pages\EditContactRequest;
+use App\Filament\Resources\ContactRequests\Pages\ListContactRequests;
+use App\Filament\Resources\ContactRequests\Pages\ViewContactRequest;
 use App\Filament\Resources\Kittens\Pages\CreateKitten;
 use App\Filament\Resources\Kittens\Pages\ListKittens;
 use App\Filament\Resources\Kittens\Pages\ViewKitten;
@@ -20,6 +23,7 @@ use App\Filament\Resources\Reviews\Pages\ViewReview;
 use App\Filament\Resources\Slides\Pages\CreateSlide;
 use App\Filament\Resources\Slides\Pages\ListSlides;
 use App\Models\BreedingCat;
+use App\Models\ContactRequest;
 use App\Models\Kitten;
 use App\Models\Litter;
 use App\Models\Review;
@@ -140,6 +144,16 @@ class AdminWorkflowTest extends TestCase
             'email' => 'anna@example.test',
             'is_visible' => true,
         ]);
+        $contactRequest = ContactRequest::query()->create([
+            'kitten_id' => $kitten->id,
+            'name' => 'Мария',
+            'phone' => '+7 (999) 222-33-44',
+            'email' => 'maria@example.test',
+            'message' => 'Хочу узнать подробнее о котёнке.',
+            'status' => 'new',
+            'mail_status' => 'sent',
+            'mail_sent_at' => now(),
+        ]);
 
         Livewire::test(ListKittens::class)->assertOk();
         Livewire::test(ViewKitten::class, ['record' => $kitten->getRouteKey()])->assertOk();
@@ -161,6 +175,30 @@ class AdminWorkflowTest extends TestCase
             ->assertSee('Контакты автора')
             ->assertSee('tel:+79991112233', false)
             ->assertSee('mailto:anna@example.test', false);
+        Livewire::test(ListContactRequests::class)
+            ->assertOk()
+            ->assertSee('Мария')
+            ->assertSee('Лея');
+        Livewire::test(ViewContactRequest::class, ['record' => $contactRequest->getRouteKey()])
+            ->assertOk()
+            ->assertSee('Хочу узнать подробнее о котёнке.')
+            ->assertSee('tel:+79992223344', false)
+            ->assertSee('mailto:maria@example.test', false)
+            ->assertSee('Письмо отправлено');
+        Livewire::test(EditContactRequest::class, ['record' => $contactRequest->getRouteKey()])
+            ->assertOk()
+            ->fillForm([
+                'status' => 'in_progress',
+                'internal_notes' => 'Перезвонить вечером.',
+            ])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('contact_requests', [
+            'id' => $contactRequest->id,
+            'status' => 'in_progress',
+            'internal_notes' => 'Перезвонить вечером.',
+        ]);
         Livewire::test(ListSlides::class)->assertOk();
     }
 

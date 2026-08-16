@@ -2,9 +2,9 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\ContactRequests\ContactRequestResource;
 use App\Filament\Resources\Kittens\KittenResource;
 use App\Filament\Resources\Litters\LitterResource;
-use App\Filament\Resources\Reviews\ReviewResource;
 use App\Filament\Resources\Slides\SlideResource;
 use Filament\Widgets\Widget;
 
@@ -42,10 +42,10 @@ class AdminQuickActions extends Widget
                     'theme' => 'files',
                 ],
                 [
-                    'label' => 'Отзывы',
-                    'description' => 'Ответить и скрыть',
-                    'url' => ReviewResource::getUrl(),
-                    'icon' => 'heroicon-o-chat-bubble-left-right',
+                    'label' => 'Заявки',
+                    'description' => 'Новые обращения с сайта',
+                    'url' => ContactRequestResource::getUrl(),
+                    'icon' => 'heroicon-o-inbox-arrow-down',
                     'theme' => 'reviews',
                 ],
             ],

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BreedingCat;
+use App\Models\ContactRequest;
 use App\Models\ContentPage;
 use App\Models\GalleryImage;
 use App\Models\Kitten;
@@ -16,7 +17,10 @@ use App\Support\MediaUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Throwable;
 
 class SiteController extends Controller
 {
@@ -366,28 +370,84 @@ class SiteController extends Controller
         ]);
     }
 
-    public function contacts(): View
+    public function contacts(Request $request): View
     {
-        return view('pages.contacts');
+        $kittenSlug = trim((string) $request->query('kitten'));
+        $selectedKitten = $kittenSlug !== ''
+            ? Kitten::query()
+                ->where('slug', $kittenSlug)
+                ->where('is_visible', true)
+                ->first()
+            : null;
+
+        return view('pages.contacts', compact('selectedKitten'));
     }
 
     public function sendContact(Request $request): RedirectResponse
     {
         $data = $request->validate([
+            'kitten_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('kittens', 'id')->where('is_visible', true),
+            ],
             'name' => ['required', 'string', 'max:80'],
             'phone' => ['required', 'string', 'max:40'],
             'message' => ['required', 'string', 'max:3000'],
             'email' => ['nullable', 'email', 'max:160'],
+            'website' => ['nullable', 'prohibited'],
         ]);
 
+        $contactRequest = ContactRequest::query()->create([
+            'kitten_id' => $data['kitten_id'] ?? null,
+            'name' => $data['name'],
+            'phone' => $data['phone'],
+            'email' => $data['email'] ?? null,
+            'message' => $data['message'],
+            'status' => 'new',
+            'mail_status' => 'pending',
+        ]);
+
+        $contactRequest->load('kitten');
         $to = $this->site()['email'] ?: config('mail.from.address');
+        $kittenLabel = $contactRequest->kitten?->display_name;
+        $subject = $kittenLabel
+            ? "Заявка по котёнку {$kittenLabel} — МарМелАма"
+            : 'Сообщение с сайта МарМелАма';
+        $body = implode("\n", array_filter([
+            "Заявка №{$contactRequest->id}",
+            $kittenLabel ? "Котёнок: {$kittenLabel}" : null,
+            "Имя: {$data['name']}",
+            "Телефон: {$data['phone']}",
+            'Email: '.($data['email'] ?? 'не указан'),
+            '',
+            $data['message'],
+        ], fn (?string $line): bool => $line !== null));
 
-        Mail::raw(
-            "Имя: {$data['name']}\nТелефон: {$data['phone']}\nEmail: ".($data['email'] ?? 'не указан')."\n\n{$data['message']}",
-            fn ($message) => $message->to($to)->subject('Сообщение с сайта МарМелАма')
-        );
+        try {
+            Mail::raw($body, function ($message) use ($data, $subject, $to): void {
+                $message->to($to)->subject($subject);
 
-        return back()->with('status', 'Сообщение отправлено. Мы свяжемся с вами.');
+                if (filled($data['email'] ?? null)) {
+                    $message->replyTo($data['email'], $data['name']);
+                }
+            });
+
+            $contactRequest->update([
+                'mail_status' => 'sent',
+                'mail_sent_at' => now(),
+                'mail_error' => null,
+            ]);
+        } catch (Throwable $exception) {
+            report($exception);
+
+            $contactRequest->update([
+                'mail_status' => 'failed',
+                'mail_error' => Str::limit($exception->getMessage(), 2000, ''),
+            ]);
+        }
+
+        return back()->with('status', 'Заявка принята. Мы свяжемся с вами.');
     }
 
     public function gallery(): View

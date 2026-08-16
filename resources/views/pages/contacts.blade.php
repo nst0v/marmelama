@@ -28,10 +28,15 @@
             @csrf
             <h2>Написать нам</h2>
             @if(session('status'))<div class="form-status">{{ session('status') }}</div>@endif
+            @if($selectedKitten)
+                <input type="hidden" name="kitten_id" value="{{ $selectedKitten->id }}">
+                <div class="form-status">Заявка по котёнку: <strong>{{ $selectedKitten->display_name }}</strong></div>
+            @endif
+            <label aria-hidden="true" style="position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden;">Ваш сайт<input name="website" tabindex="-1" autocomplete="off"></label>
             <label>Ваше имя<input name="name" value="{{ old('name') }}" required></label>
             <label>Телефон<input name="phone" value="{{ old('phone') }}" required></label>
             <label>Email<input name="email" type="email" value="{{ old('email') }}"></label>
-            <label>Сообщение<textarea name="message" rows="6" required>{{ old('message', request('kitten') ? 'Здравствуйте! Хочу узнать подробнее про котенка '.request('kitten') : '') }}</textarea></label>
+            <label>Сообщение<textarea name="message" rows="6" required>{{ old('message', $selectedKitten ? 'Здравствуйте! Хочу узнать подробнее про котёнка '.$selectedKitten->display_name : '') }}</textarea></label>
             @if($errors->any())<div class="form-errors">Проверьте заполнение полей.</div>@endif
             <button class="button" type="submit">Отправить сообщение</button>
         </form>

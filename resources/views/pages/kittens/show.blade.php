@@ -19,7 +19,7 @@
     $price = $kitten->price && (float) $kitten->price > 0
         ? number_format((float) $kitten->price, 0, ',', ' ').' ₽'
         : null;
-    $contactUrl = route('contacts').'?kitten='.urlencode($displayName).'#contact-form';
+    $contactUrl = route('contacts', ['kitten' => $kitten->slug]).'#contact-form';
     $offer = match ($kitten->status) {
         'available' => ['Стоимость', $price ?: 'По запросу', 'Расскажем об условиях покупки, характере котёнка и вариантах доставки.'],
         'reserved' => ['Статус', 'Котёнок забронирован', 'Можно уточнить статус брони или узнать о похожих свободных котятах.'],

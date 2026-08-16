@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Resources\BreedingCats\BreedingCatResource;
+use App\Filament\Resources\ContactRequests\ContactRequestResource;
 use App\Filament\Resources\Kittens\KittenResource;
 use App\Filament\Resources\Litters\LitterResource;
 use App\Filament\Resources\Reviews\ReviewResource;
@@ -40,6 +41,7 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::hex('#8B5E3C'),
             ])
             ->resources([
+                ContactRequestResource::class,
                 KittenResource::class,
                 LitterResource::class,
                 SlideResource::class,
