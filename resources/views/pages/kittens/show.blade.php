@@ -91,10 +91,10 @@
 
                 <div class="kitten-profile-actions">
                     @if($kitten->status === 'available')
-                        <a class="button full" href="{{ $contactUrl }}">Обсудить</a>
+                        <a class="button full" href="{{ $contactUrl }}" data-analytics-goal="kitten_contact_click">Обсудить</a>
                         <a class="button secondary full" href="{{ $site['max'] }}" target="_blank" rel="noopener noreferrer">Написать в {{ $site['max_label'] }}</a>
                     @elseif($kitten->status === 'reserved')
-                        <a class="button full" href="{{ $contactUrl }}">Уточнить статус брони</a>
+                        <a class="button full" href="{{ $contactUrl }}" data-analytics-goal="kitten_contact_click">Уточнить статус брони</a>
                         <a class="button secondary full" href="{{ route('kittens.index', ['status' => 'available']) }}">Смотреть свободных</a>
                     @else
                         <a class="button full" href="{{ route('kittens.index', ['status' => 'available']) }}">Смотреть свободных котят</a>

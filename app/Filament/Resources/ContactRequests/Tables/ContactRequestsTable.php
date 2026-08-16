@@ -39,6 +39,15 @@ class ContactRequestsTable
                     ->label('Котёнок')
                     ->placeholder('Общий вопрос')
                     ->wrap(),
+                TextColumn::make('source_label')
+                    ->label('Источник')
+                    ->description(fn (ContactRequest $record): ?string => $record->utm_campaign)
+                    ->badge()
+                    ->color(fn (ContactRequest $record): string => $record->source_label === 'Яндекс Директ'
+                        ? 'warning'
+                        : 'gray')
+                    ->searchable(['utm_source', 'utm_campaign', 'utm_term', 'yclid'])
+                    ->wrap(),
                 TextColumn::make('phone')
                     ->label('Телефон')
                     ->searchable(),

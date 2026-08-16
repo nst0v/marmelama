@@ -395,8 +395,13 @@ class SiteController extends Controller
             'phone' => ['required', 'string', 'max:40'],
             'message' => ['required', 'string', 'max:3000'],
             'email' => ['nullable', 'email', 'max:160'],
+            'privacy_consent' => ['accepted'],
             'website' => ['nullable', 'prohibited'],
+        ], [
+            'privacy_consent.accepted' => 'Подтвердите согласие на обработку персональных данных.',
         ]);
+
+        $attribution = (array) $request->session()->get('attribution', []);
 
         $contactRequest = ContactRequest::query()->create([
             'kitten_id' => $data['kitten_id'] ?? null,
@@ -404,6 +409,15 @@ class SiteController extends Controller
             'phone' => $data['phone'],
             'email' => $data['email'] ?? null,
             'message' => $data['message'],
+            'privacy_consented_at' => now(),
+            'utm_source' => $attribution['utm_source'] ?? null,
+            'utm_medium' => $attribution['utm_medium'] ?? null,
+            'utm_campaign' => $attribution['utm_campaign'] ?? null,
+            'utm_content' => $attribution['utm_content'] ?? null,
+            'utm_term' => $attribution['utm_term'] ?? null,
+            'yclid' => $attribution['yclid'] ?? null,
+            'landing_url' => $attribution['landing_url'] ?? null,
+            'referrer_url' => $attribution['referrer_url'] ?? null,
             'status' => 'new',
             'mail_status' => 'pending',
         ]);
@@ -420,6 +434,9 @@ class SiteController extends Controller
             "Имя: {$data['name']}",
             "Телефон: {$data['phone']}",
             'Email: '.($data['email'] ?? 'не указан'),
+            'Источник: '.$contactRequest->source_label,
+            filled($contactRequest->utm_campaign) ? 'Кампания: '.$contactRequest->utm_campaign : null,
+            filled($contactRequest->utm_term) ? 'Поисковый запрос: '.$contactRequest->utm_term : null,
             '',
             $data['message'],
         ], fn (?string $line): bool => $line !== null));
@@ -447,7 +464,9 @@ class SiteController extends Controller
             ]);
         }
 
-        return back()->with('status', 'Заявка принята. Мы свяжемся с вами.');
+        return back()
+            ->with('status', 'Заявка принята. Мы свяжемся с вами.')
+            ->with('metrika_goal', 'contact_request_sent');
     }
 
     public function gallery(): View

@@ -12,6 +12,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'phone',
     'email',
     'message',
+    'privacy_consented_at',
+    'utm_source',
+    'utm_medium',
+    'utm_campaign',
+    'utm_content',
+    'utm_term',
+    'yclid',
+    'landing_url',
+    'referrer_url',
     'status',
     'internal_notes',
     'mail_status',
@@ -37,6 +46,7 @@ class ContactRequest extends Model
     {
         return [
             'mail_sent_at' => 'datetime',
+            'privacy_consented_at' => 'datetime',
         ];
     }
 
@@ -53,5 +63,24 @@ class ContactRequest extends Model
     public function getMailStatusLabelAttribute(): string
     {
         return self::MAIL_STATUSES[$this->mail_status] ?? $this->mail_status;
+    }
+
+    public function getSourceLabelAttribute(): string
+    {
+        $source = mb_strtolower(trim((string) $this->utm_source));
+
+        if (filled($this->yclid) || in_array($source, ['ya', 'yandex', 'yandex-direct', 'yandex_direct'], true)) {
+            return 'Яндекс Директ';
+        }
+
+        if ($source !== '') {
+            return $this->utm_source;
+        }
+
+        if (filled($this->referrer_url)) {
+            return 'Переход с другого сайта';
+        }
+
+        return 'Прямой заход';
     }
 }

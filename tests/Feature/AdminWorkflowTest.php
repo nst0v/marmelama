@@ -267,6 +267,13 @@ class AdminWorkflowTest extends TestCase
             'status' => 'new',
             'mail_status' => 'sent',
             'mail_sent_at' => now(),
+            'privacy_consented_at' => now(),
+            'utm_source' => 'yandex',
+            'utm_medium' => 'cpc',
+            'utm_campaign' => 'burma_omsk',
+            'utm_term' => 'бурманские котята',
+            'yclid' => 'click-123',
+            'landing_url' => 'https://www.мармелама.рф/kittens',
         ]);
 
         Livewire::test(ListKittens::class)->assertOk();
@@ -292,13 +299,18 @@ class AdminWorkflowTest extends TestCase
         Livewire::test(ListContactRequests::class)
             ->assertOk()
             ->assertSee('Мария')
-            ->assertSee('Лея');
+            ->assertSee('Лея')
+            ->assertSee('Яндекс Директ');
         Livewire::test(ViewContactRequest::class, ['record' => $contactRequest->getRouteKey()])
             ->assertOk()
             ->assertSee('Хочу узнать подробнее о котёнке.')
             ->assertSee('tel:+79992223344', false)
             ->assertSee('mailto:maria@example.test', false)
-            ->assertSee('Письмо отправлено');
+            ->assertSee('Письмо отправлено')
+            ->assertSee('Реклама и источник')
+            ->assertSee('burma_omsk')
+            ->assertSee('бурманские котята')
+            ->assertSee('click-123');
         Livewire::test(EditContactRequest::class, ['record' => $contactRequest->getRouteKey()])
             ->assertOk()
             ->fillForm([

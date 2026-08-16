@@ -59,6 +59,48 @@ class ContactRequestInfolist
                             ]),
                     ])
                     ->columnSpanFull(),
+                Section::make('Реклама и источник')
+                    ->description('Показывает, откуда посетитель пришёл перед отправкой заявки.')
+                    ->schema([
+                        Grid::make(['default' => 1, 'md' => 3])
+                            ->schema([
+                                TextEntry::make('source_label')
+                                    ->label('Источник')
+                                    ->badge()
+                                    ->color(fn (ContactRequest $record): string => $record->source_label === 'Яндекс Директ'
+                                        ? 'warning'
+                                        : 'gray'),
+                                TextEntry::make('utm_campaign')
+                                    ->label('Кампания')
+                                    ->placeholder('Не указана'),
+                                TextEntry::make('utm_term')
+                                    ->label('Ключевая фраза')
+                                    ->placeholder('Не указана'),
+                                TextEntry::make('utm_medium')
+                                    ->label('Тип рекламы')
+                                    ->placeholder('Не указан'),
+                                TextEntry::make('utm_content')
+                                    ->label('Объявление')
+                                    ->placeholder('Не указано'),
+                                TextEntry::make('yclid')
+                                    ->label('Идентификатор клика yclid')
+                                    ->placeholder('Не указан')
+                                    ->copyable(),
+                            ]),
+                        TextEntry::make('landing_url')
+                            ->label('Страница входа')
+                            ->placeholder('Не определена')
+                            ->url(fn (?string $state): ?string => filter_var($state, FILTER_VALIDATE_URL) ? $state : null)
+                            ->openUrlInNewTab()
+                            ->columnSpanFull(),
+                        TextEntry::make('referrer_url')
+                            ->label('Предыдущая страница')
+                            ->placeholder('Не определена')
+                            ->url(fn (?string $state): ?string => filter_var($state, FILTER_VALIDATE_URL) ? $state : null)
+                            ->openUrlInNewTab()
+                            ->columnSpanFull(),
+                    ])
+                    ->columnSpanFull(),
                 Section::make('Уведомление по почте')
                     ->schema([
                         Grid::make(['default' => 1, 'md' => 2])

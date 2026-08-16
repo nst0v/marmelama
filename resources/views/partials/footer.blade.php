@@ -37,19 +37,19 @@
             <h3>Всегда на связи</h3>
             <p>Позвоните или выберите удобный мессенджер — ответим на вопросы о котятах и питомнике.</p>
             <div class="footer-contact-links">
-                <a class="footer-phone" href="tel:{{ $site['phone_href'] }}">{{ $site['phone'] }}</a>
+                <a class="footer-phone" href="tel:{{ $site['phone_href'] }}" data-analytics-goal="phone_click">{{ $site['phone'] }}</a>
                 <a class="footer-email" href="mailto:{{ $site['email'] }}">{{ $site['email'] }}</a>
             </div>
             <div class="footer-messengers" role="group" aria-label="Мессенджеры питомника">
-                <a class="footer-messenger" href="{{ $site['max'] }}" target="_blank" rel="noopener noreferrer" aria-label="Написать в MAX" data-footer-messenger="max">
+                <a class="footer-messenger" href="{{ $site['max'] }}" target="_blank" rel="noopener noreferrer" aria-label="Написать в MAX" data-footer-messenger="max" data-analytics-goal="max_click">
                     <img src="{{ asset('images/messengers/max.png') }}" alt="" width="192" height="192" aria-hidden="true">
                     <span>MAX</span>
                 </a>
-                <a class="footer-messenger" href="{{ $site['telegram'] }}" target="_blank" rel="noopener noreferrer" aria-label="Написать в Telegram" data-footer-messenger="telegram">
+                <a class="footer-messenger" href="{{ $site['telegram'] }}" target="_blank" rel="noopener noreferrer" aria-label="Написать в Telegram" data-footer-messenger="telegram" data-analytics-goal="telegram_click">
                     <img src="{{ asset('images/messengers/telegram.svg') }}" alt="" width="496" height="496" aria-hidden="true">
                     <span>Telegram</span>
                 </a>
-                <a class="footer-messenger" href="{{ $site['whatsapp'] }}" target="_blank" rel="noopener noreferrer" aria-label="Написать в WhatsApp" data-footer-messenger="whatsapp">
+                <a class="footer-messenger" href="{{ $site['whatsapp'] }}" target="_blank" rel="noopener noreferrer" aria-label="Написать в WhatsApp" data-footer-messenger="whatsapp" data-analytics-goal="whatsapp_click">
                     <img src="{{ asset('images/messengers/whatsapp.svg') }}" alt="" width="448" height="448" aria-hidden="true">
                     <span>WhatsApp</span>
                 </a>
@@ -63,6 +63,11 @@
             Разработаем сайт для вас
             <span aria-hidden="true">↗</span>
         </a>
-        <a class="footer-politics" href="{{ route('politics') }}">Политика конфиденциальности</a>
+        <div class="footer-legal">
+            @if((int) config('services.yandex_metrika.id') > 0)
+                <button class="footer-cookie-settings" type="button" data-analytics-consent-settings>Настройки cookie</button>
+            @endif
+            <a class="footer-politics" href="{{ route('politics') }}">Политика конфиденциальности</a>
+        </div>
     </div>
 </footer>

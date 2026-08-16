@@ -16,8 +16,8 @@
         <div class="contact-card card">
             <h2>Контакты</h2>
             <dl class="meta-list detail-meta">
-                <div><dt>Телефон</dt><dd><a href="tel:{{ $site['phone_href'] }}">{{ $site['phone'] }}</a></dd></div>
-                <div><dt>{{ $site['max_label'] }}</dt><dd><a href="{{ $site['max'] }}">Написать в {{ $site['max_label'] }}</a></dd></div>
+                <div><dt>Телефон</dt><dd><a href="tel:{{ $site['phone_href'] }}" data-analytics-goal="phone_click">{{ $site['phone'] }}</a></dd></div>
+                <div><dt>{{ $site['max_label'] }}</dt><dd><a href="{{ $site['max'] }}" data-analytics-goal="max_click">Написать в {{ $site['max_label'] }}</a></dd></div>
                 <div><dt>Email</dt><dd><a href="mailto:{{ $site['email'] }}">{{ $site['email'] }}</a></dd></div>
                 <div><dt>Город</dt><dd>{{ $site['city'] }}</dd></div>
                 <div><dt>ВК</dt><dd><a href="{{ $site['vk'] }}">vk.com/marmelama.omsk</a></dd></div>
@@ -37,6 +37,10 @@
             <label>Телефон<input name="phone" value="{{ old('phone') }}" required></label>
             <label>Email<input name="email" type="email" value="{{ old('email') }}"></label>
             <label>Сообщение<textarea name="message" rows="6" required>{{ old('message', $selectedKitten ? 'Здравствуйте! Хочу узнать подробнее про котёнка '.$selectedKitten->display_name : '') }}</textarea></label>
+            <label class="contact-consent">
+                <input name="privacy_consent" type="checkbox" value="1" @checked(old('privacy_consent')) required>
+                <span>Я соглашаюсь на обработку персональных данных в соответствии с <a href="{{ route('politics') }}" target="_blank">политикой конфиденциальности</a>.</span>
+            </label>
             @if($errors->any())<div class="form-errors">Проверьте заполнение полей.</div>@endif
             <button class="button" type="submit">Отправить сообщение</button>
         </form>

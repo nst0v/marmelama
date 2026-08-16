@@ -2,6 +2,110 @@ const header = document.querySelector('.site-header');
 const toggle = document.querySelector('.menu-toggle');
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+const metrikaId = Number.parseInt(document.body.dataset.metrikaId ?? '', 10);
+const analyticsConsentKey = 'marmelama.analyticsConsent';
+const analyticsConsent = document.querySelector('[data-analytics-consent]');
+let metrikaInitialized = false;
+let pendingPageGoalSent = false;
+
+const readAnalyticsConsent = () => {
+  try {
+    return window.localStorage.getItem(analyticsConsentKey);
+  } catch {
+    return null;
+  }
+};
+
+const writeAnalyticsConsent = (value) => {
+  try {
+    window.localStorage.setItem(analyticsConsentKey, value);
+  } catch {
+    // The visitor can still use this choice for the current page.
+  }
+};
+
+const sendMetrikaGoal = (goal) => {
+  if (!metrikaInitialized || typeof window.ym !== 'function' || !goal) return false;
+
+  window.ym(metrikaId, 'reachGoal', goal);
+
+  return true;
+};
+
+const initializeMetrika = () => {
+  if (!Number.isInteger(metrikaId) || metrikaId <= 0 || metrikaInitialized) return;
+
+  window.ym = window.ym || function () {
+    (window.ym.a = window.ym.a || []).push(arguments);
+  };
+  window.ym.l = Date.now();
+
+  const script = document.createElement('script');
+  script.async = true;
+  script.src = 'https://mc.yandex.ru/metrika/tag.js';
+  document.head.appendChild(script);
+
+  window.ym(metrikaId, 'init', {
+    accurateTrackBounce: true,
+    clickmap: true,
+    trackLinks: true,
+  });
+
+  metrikaInitialized = true;
+
+  const pendingPageGoal = document.body.dataset.metrikaGoal;
+
+  if (pendingPageGoal && !pendingPageGoalSent) {
+    pendingPageGoalSent = sendMetrikaGoal(pendingPageGoal);
+  }
+};
+
+const showAnalyticsConsent = () => {
+  if (!analyticsConsent) return;
+
+  analyticsConsent.hidden = false;
+  analyticsConsent.querySelector('button')?.focus({ preventScroll: true });
+};
+
+const hideAnalyticsConsent = () => {
+  if (analyticsConsent) analyticsConsent.hidden = true;
+};
+
+if (Number.isInteger(metrikaId) && metrikaId > 0) {
+  const savedConsent = readAnalyticsConsent();
+
+  if (savedConsent === 'accepted') {
+    initializeMetrika();
+  } else if (savedConsent !== 'declined') {
+    showAnalyticsConsent();
+  }
+
+  analyticsConsent?.querySelector('[data-analytics-accept]')?.addEventListener('click', () => {
+    writeAnalyticsConsent('accepted');
+    hideAnalyticsConsent();
+    initializeMetrika();
+  });
+
+  analyticsConsent?.querySelector('[data-analytics-decline]')?.addEventListener('click', () => {
+    writeAnalyticsConsent('declined');
+    hideAnalyticsConsent();
+
+    if (metrikaInitialized) window.location.reload();
+  });
+
+  document.querySelector('[data-analytics-consent-settings]')?.addEventListener('click', showAnalyticsConsent);
+
+  document.addEventListener('click', (event) => {
+    const target = event.target instanceof Element
+      ? event.target.closest('[data-analytics-goal]')
+      : null;
+
+    if (!target) return;
+
+    sendMetrikaGoal(target.dataset.analyticsGoal);
+  });
+}
+
 toggle?.addEventListener('click', () => {
   header?.getAnimations?.().forEach((animation) => animation.cancel());
   const previousHeight = header?.getBoundingClientRect().height ?? 0;

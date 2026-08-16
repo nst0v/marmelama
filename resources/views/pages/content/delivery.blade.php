@@ -69,7 +69,7 @@
                 <p>Назовите ваш город — предложим подходящие варианты и рассчитаем стоимость.</p>
                 <div class="delivery-actions">
                     <a class="button full" href="{{ $site['max'] }}">Написать в {{ $site['max_label'] }}</a>
-                    <a class="button secondary full" href="tel:{{ $site['phone_href'] }}">Позвонить</a>
+                    <a class="button secondary full" href="tel:{{ $site['phone_href'] }}" data-analytics-goal="phone_click">Позвонить</a>
                 </div>
             </div>
         </aside>

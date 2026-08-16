@@ -10,7 +10,7 @@
             </span>
         </a>
 
-        <a class="mobile-call-badge" href="tel:{{ $site['phone_href'] }}" aria-label="Позвонить по номеру {{ $site['phone'] }}">
+        <a class="mobile-call-badge" href="tel:{{ $site['phone_href'] }}" aria-label="Позвонить по номеру {{ $site['phone'] }}" data-analytics-goal="phone_click">
             <span class="mobile-call-icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24">
                     <path d="M6.62 10.79a15.46 15.46 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1.02l-2.2 2.2Z"/>
@@ -26,7 +26,7 @@
         <div class="header-actions">
             <div class="header-contact-row">
                 <a class="button small header-booking" href="{{ route('contacts') }}#contact-form">Забронировать</a>
-                <a class="phone-link" href="tel:{{ $site['phone_href'] }}" aria-label="Позвонить по номеру {{ $site['phone'] }}">
+                <a class="phone-link" href="tel:{{ $site['phone_href'] }}" aria-label="Позвонить по номеру {{ $site['phone'] }}" data-analytics-goal="phone_click">
                     <span class="mobile-call-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24">
                             <path d="M6.62 10.79a15.46 15.46 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.61 21 3 13.39 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1.02l-2.2 2.2Z"/>
@@ -35,15 +35,15 @@
                     <span class="mobile-call-number">{{ $site['phone'] }}</span>
                 </a>
                 <div class="messenger-links" role="group" aria-label="Написать нам в мессенджере">
-                    <a class="messenger-link messenger-link--max" href="{{ $site['max'] }}" target="_blank" rel="noopener noreferrer" aria-label="Написать в MAX" title="MAX" data-messenger="max">
+                    <a class="messenger-link messenger-link--max" href="{{ $site['max'] }}" target="_blank" rel="noopener noreferrer" aria-label="Написать в MAX" title="MAX" data-messenger="max" data-analytics-goal="max_click">
                         <img src="{{ asset('images/messengers/max.png') }}" alt="" width="192" height="192" aria-hidden="true">
                         <span class="messenger-label">MAX</span>
                     </a>
-                    <a class="messenger-link messenger-link--telegram" href="{{ $site['telegram'] }}" target="_blank" rel="noopener noreferrer" aria-label="Написать в Telegram" title="Telegram" data-messenger="telegram">
+                    <a class="messenger-link messenger-link--telegram" href="{{ $site['telegram'] }}" target="_blank" rel="noopener noreferrer" aria-label="Написать в Telegram" title="Telegram" data-messenger="telegram" data-analytics-goal="telegram_click">
                         <img src="{{ asset('images/messengers/telegram.svg') }}" alt="" width="496" height="496" aria-hidden="true">
                         <span class="messenger-label">Telegram</span>
                     </a>
-                    <a class="messenger-link messenger-link--whatsapp" href="{{ $site['whatsapp'] }}" target="_blank" rel="noopener noreferrer" aria-label="Написать в WhatsApp" title="WhatsApp" data-messenger="whatsapp">
+                    <a class="messenger-link messenger-link--whatsapp" href="{{ $site['whatsapp'] }}" target="_blank" rel="noopener noreferrer" aria-label="Написать в WhatsApp" title="WhatsApp" data-messenger="whatsapp" data-analytics-goal="whatsapp_click">
                         <img src="{{ asset('images/messengers/whatsapp.svg') }}" alt="" width="448" height="448" aria-hidden="true">
                         <span class="messenger-label">WhatsApp</span>
                     </a>

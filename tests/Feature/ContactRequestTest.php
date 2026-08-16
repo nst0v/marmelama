@@ -32,12 +32,14 @@ class ContactRequestTest extends TestCase
                 'phone' => '+7 999 111-22-33',
                 'email' => 'anna@example.test',
                 'message' => 'Хочу узнать подробнее.',
+                'privacy_consent' => '1',
                 'website' => '',
             ]);
 
         $response
             ->assertRedirect(route('contacts', ['kitten' => $kitten->slug]))
-            ->assertSessionHas('status', 'Заявка принята. Мы свяжемся с вами.');
+            ->assertSessionHas('status', 'Заявка принята. Мы свяжемся с вами.')
+            ->assertSessionHas('metrika_goal', 'contact_request_sent');
 
         $request = ContactRequest::query()->sole();
 
@@ -46,6 +48,7 @@ class ContactRequestTest extends TestCase
         $this->assertSame('new', $request->status);
         $this->assertSame('sent', $request->mail_status);
         $this->assertNotNull($request->mail_sent_at);
+        $this->assertNotNull($request->privacy_consented_at);
         $this->assertNull($request->mail_error);
     }
 
@@ -60,6 +63,7 @@ class ContactRequestTest extends TestCase
             'phone' => '+7 999 000-00-00',
             'email' => 'olga@example.test',
             'message' => 'Позвоните мне, пожалуйста.',
+            'privacy_consent' => '1',
             'website' => '',
         ])->assertSessionHas('status', 'Заявка принята. Мы свяжемся с вами.');
 
@@ -97,6 +101,49 @@ class ContactRequestTest extends TestCase
             'message' => 'Spam',
             'website' => 'https://spam.example',
         ])->assertSessionHasErrors('website');
+
+        $this->assertDatabaseCount('contact_requests', 0);
+    }
+
+    public function test_yandex_attribution_is_carried_from_landing_page_to_saved_request(): void
+    {
+        Mail::fake();
+
+        $this->withHeader('referer', 'https://yandex.ru/search/?text=burma')
+            ->get('/kittens?utm_source=yandex&utm_medium=cpc&utm_campaign=burma_omsk&utm_content=ad_42&utm_term=burmanskie_kotyata&yclid=click-123')
+            ->assertOk();
+
+        $this->post(route('contacts.send'), [
+            'name' => 'Ирина',
+            'phone' => '+7 999 444-55-66',
+            'message' => 'Интересует котёнок.',
+            'privacy_consent' => '1',
+            'website' => '',
+        ])->assertSessionHas('metrika_goal', 'contact_request_sent');
+
+        $request = ContactRequest::query()->sole();
+
+        $this->assertSame('Яндекс Директ', $request->source_label);
+        $this->assertSame('yandex', $request->utm_source);
+        $this->assertSame('cpc', $request->utm_medium);
+        $this->assertSame('burma_omsk', $request->utm_campaign);
+        $this->assertSame('ad_42', $request->utm_content);
+        $this->assertSame('burmanskie_kotyata', $request->utm_term);
+        $this->assertSame('click-123', $request->yclid);
+        $this->assertStringContainsString('/kittens?', $request->landing_url);
+        $this->assertSame('https://yandex.ru/search/?text=burma', $request->referrer_url);
+    }
+
+    public function test_contact_form_requires_privacy_consent(): void
+    {
+        Mail::fake();
+
+        $this->from(route('contacts'))->post(route('contacts.send'), [
+            'name' => 'Ирина',
+            'phone' => '+7 999 444-55-66',
+            'message' => 'Интересует котёнок.',
+            'website' => '',
+        ])->assertSessionHasErrors('privacy_consent');
 
         $this->assertDatabaseCount('contact_requests', 0);
     }
