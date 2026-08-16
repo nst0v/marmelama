@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\Kittens\Tables;
 
+use App\Filament\Resources\Kittens\KittenResource;
 use App\Models\Kitten;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\ImageColumn;
@@ -20,6 +22,7 @@ class KittensTable
         return $table
             ->modifyQueryUsing(fn (Builder $query): Builder => $query->with('litter'))
             ->defaultSort('updated_at', 'desc')
+            ->recordUrl(fn (Kitten $record): string => KittenResource::getUrl('edit', ['record' => $record]))
             ->columns([
                 ImageColumn::make('cover_image')
                     ->label('Фото')
@@ -108,8 +111,16 @@ class KittensTable
                     ->falseLabel('Черновики'),
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                EditAction::make()
+                    ->label('Изменить')
+                    ->button(),
+                ViewAction::make()
+                    ->label('Смотреть'),
+                DeleteAction::make()
+                    ->label('Удалить')
+                    ->modalHeading(fn (Kitten $record): string => 'Удалить котёнка «'.$record->display_name.'»?')
+                    ->modalDescription('Котёнок будет полностью удалён из базы и исчезнет с сайта. Это действие нельзя отменить.')
+                    ->modalSubmitActionLabel('Удалить навсегда'),
             ]);
     }
 }

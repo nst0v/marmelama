@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\BreedingCats\BreedingCatResource;
 use App\Filament\Resources\ContactRequests\ContactRequestResource;
 use App\Filament\Resources\Kittens\KittenResource;
 use App\Filament\Resources\Litters\LitterResource;
@@ -21,32 +22,39 @@ class AdminQuickActions extends Widget
         return [
             'actions' => [
                 [
-                    'label' => 'Добавить котёнка',
-                    'description' => 'Имя, статус, цена и фото',
-                    'url' => KittenResource::getUrl('create'),
+                    'label' => 'Котята',
+                    'description' => 'Просмотр и редактирование',
+                    'url' => KittenResource::getUrl(),
                     'icon' => '/admin-icons/cat-face.svg',
                     'theme' => 'cat',
                 ],
                 [
-                    'label' => 'Создать помёт',
-                    'description' => 'Дата, родители и котята',
-                    'url' => LitterResource::getUrl('create'),
+                    'label' => 'Помёты',
+                    'description' => 'Список помётов и котят',
+                    'url' => LitterResource::getUrl(),
                     'icon' => 'heroicon-o-calendar-days',
                     'theme' => 'gallery',
                 ],
                 [
-                    'label' => 'Добавить слайд',
-                    'description' => 'Изображение на главной',
-                    'url' => SlideResource::getUrl('create'),
-                    'icon' => 'heroicon-o-photo',
-                    'theme' => 'files',
+                    'label' => 'Производители',
+                    'description' => 'Коты и кошки питомника',
+                    'url' => BreedingCatResource::getUrl(),
+                    'icon' => 'heroicon-o-identification',
+                    'theme' => 'breeding',
                 ],
                 [
                     'label' => 'Заявки',
-                    'description' => 'Новые обращения с сайта',
+                    'description' => 'Обращения с сайта',
                     'url' => ContactRequestResource::getUrl(),
                     'icon' => 'heroicon-o-inbox-arrow-down',
                     'theme' => 'reviews',
+                ],
+                [
+                    'label' => 'Слайды',
+                    'description' => 'Изображения на главной',
+                    'url' => SlideResource::getUrl(),
+                    'icon' => 'heroicon-o-photo',
+                    'theme' => 'files',
                 ],
             ],
         ];

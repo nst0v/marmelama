@@ -10,6 +10,8 @@ class ListKittens extends ListRecords
 {
     protected static string $resource = KittenResource::class;
 
+    protected ?string $subheading = 'Нажмите на строку котёнка, чтобы сразу изменить информацию.';
+
     protected function getHeaderActions(): array
     {
         return [

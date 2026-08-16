@@ -1,6 +1,6 @@
 <x-filament-widgets::widget>
     <x-filament::section>
-        <x-slot name="heading">Главное</x-slot>
+        <x-slot name="heading">Разделы</x-slot>
 
         <style>
             .mm-admin-actions {
@@ -13,6 +13,12 @@
             @media (min-width: 48rem) {
                 .mm-admin-actions {
                     grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+            }
+
+            @media (min-width: 80rem) {
+                .mm-admin-actions {
+                    grid-template-columns: repeat(5, minmax(0, 1fr));
                 }
             }
 
@@ -47,6 +53,11 @@
                 border-color: #bfdbfe;
             }
 
+            .mm-admin-action--breeding {
+                background: linear-gradient(135deg, #faf5ff, #f3e8ff);
+                border-color: #e9d5ff;
+            }
+
             .mm-admin-action--reviews {
                 background: linear-gradient(135deg, #fdf2f8, #fce7f3);
                 border-color: #fbcfe8;
@@ -67,6 +78,11 @@
                 border-color: rgba(59, 130, 246, 0.28);
             }
 
+            .dark .mm-admin-action--breeding {
+                background: rgba(168, 85, 247, 0.10);
+                border-color: rgba(168, 85, 247, 0.28);
+            }
+
             .dark .mm-admin-action--reviews {
                 background: rgba(236, 72, 153, 0.10);
                 border-color: rgba(236, 72, 153, 0.28);
@@ -82,6 +98,10 @@
 
             .mm-admin-action-icon--files {
                 background: #3b82f6;
+            }
+
+            .mm-admin-action-icon--breeding {
+                background: #a855f7;
             }
 
             .mm-admin-action-icon--reviews {
@@ -101,6 +121,11 @@
             .dark .mm-admin-action-icon--files {
                 background: rgba(59, 130, 246, 0.22);
                 color: #93c5fd;
+            }
+
+            .dark .mm-admin-action-icon--breeding {
+                background: rgba(168, 85, 247, 0.22);
+                color: #d8b4fe;
             }
 
             .dark .mm-admin-action-icon--reviews {

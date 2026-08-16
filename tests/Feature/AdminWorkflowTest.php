@@ -8,7 +8,9 @@ use App\Filament\Resources\BreedingCats\Pages\ViewBreedingCat;
 use App\Filament\Resources\ContactRequests\Pages\EditContactRequest;
 use App\Filament\Resources\ContactRequests\Pages\ListContactRequests;
 use App\Filament\Resources\ContactRequests\Pages\ViewContactRequest;
+use App\Filament\Resources\Kittens\KittenResource;
 use App\Filament\Resources\Kittens\Pages\CreateKitten;
+use App\Filament\Resources\Kittens\Pages\EditKitten;
 use App\Filament\Resources\Kittens\Pages\ListKittens;
 use App\Filament\Resources\Kittens\Pages\ViewKitten;
 use App\Filament\Resources\Litters\Pages\CreateLitter;
@@ -22,6 +24,7 @@ use App\Filament\Resources\Reviews\Pages\ListReviews;
 use App\Filament\Resources\Reviews\Pages\ViewReview;
 use App\Filament\Resources\Slides\Pages\CreateSlide;
 use App\Filament\Resources\Slides\Pages\ListSlides;
+use App\Filament\Widgets\AdminQuickActions;
 use App\Models\BreedingCat;
 use App\Models\ContactRequest;
 use App\Models\Kitten;
@@ -108,6 +111,54 @@ class AdminWorkflowTest extends TestCase
         $this->assertSame(0, $slide->sort_order);
         $this->assertFalse($slide->is_visible);
         Storage::disk('public')->assertExists($slide->image);
+    }
+
+    public function test_mobile_friendly_kitten_workflow_links_to_edit_and_allows_permanent_deletion(): void
+    {
+        $kitten = Kitten::query()->create([
+            'name' => 'Котёнок для удаления',
+            'slug' => 'kitten-for-admin-delete',
+            'sex' => 'female',
+            'status' => 'available',
+            'is_visible' => false,
+        ]);
+
+        $list = Livewire::test(ListKittens::class)
+            ->assertOk()
+            ->assertSee('Нажмите на строку котёнка, чтобы сразу изменить информацию.')
+            ->assertTableActionExists('edit', record: $kitten)
+            ->assertTableActionExists('delete', record: $kitten);
+
+        $this->assertSame(
+            KittenResource::getUrl('edit', ['record' => $kitten]),
+            $list->instance()->getTable()->getRecordUrl($kitten),
+        );
+
+        $edit = Livewire::test(EditKitten::class, ['record' => $kitten->getRouteKey()])
+            ->assertOk()
+            ->assertSee('Сохранить изменения')
+            ->assertActionHasLabel('delete', 'Удалить котёнка');
+
+        $this->assertTrue($edit->instance()->areFormActionsSticky());
+
+        $edit->callAction('delete');
+
+        $this->assertDatabaseMissing('kittens', ['id' => $kitten->id]);
+    }
+
+    public function test_dashboard_shortcuts_open_the_five_requested_resource_lists(): void
+    {
+        Livewire::test(AdminQuickActions::class)
+            ->assertOk()
+            ->assertSee('Разделы')
+            ->assertSee('Котята')
+            ->assertSee('Помёты')
+            ->assertSee('Производители')
+            ->assertSee('Заявки')
+            ->assertSee('Слайды')
+            ->assertDontSee('Добавить котёнка')
+            ->assertDontSee('Создать помёт')
+            ->assertDontSee('Добавить слайд');
     }
 
     public function test_redesigned_operational_lists_and_detail_pages_render(): void
