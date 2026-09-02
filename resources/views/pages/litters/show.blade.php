@@ -32,7 +32,7 @@
                 <div><dt>Котят</dt><dd>{{ $litter->kittens->count() }}</dd></div>
                 <div><dt>Свободны</dt><dd>{{ $litter->kittens->where('status', 'available')->count() }}</dd></div>
             </dl>
-            <a class="button full" href="{{ route('contacts') }}#contact-form">Уточнить по помету</a>
+            <a class="button full" href="{{ route('contacts') }}#contact-form" data-analytics-goal="contact_form_open">Уточнить по помету</a>
         </div>
     </div>
 </section>

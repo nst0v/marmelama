@@ -6,8 +6,8 @@
             <p class="lead">Напишите нам — расскажем, кто сейчас свободен, и поможем выбрать малыша для вашей семьи.</p>
         </div>
         <div class="button-row">
-            <a class="button" href="{{ $site['max'] }}">Написать в {{ $site['max_label'] }}</a>
-            <a class="button secondary" href="{{ route('contacts') }}#contact-form">Заказать звонок</a>
+            <a class="button" href="{{ $site['max'] }}" data-analytics-goal="max_click">Написать в {{ $site['max_label'] }}</a>
+            <a class="button secondary" href="{{ route('contacts') }}#contact-form" data-analytics-goal="contact_form_open">Заказать звонок</a>
         </div>
     </div>
 </section>

@@ -18,7 +18,7 @@
             <dl class="meta-list detail-meta">
                 <div><dt>Телефон</dt><dd><a href="tel:{{ $site['phone_href'] }}" data-analytics-goal="phone_click">{{ $site['phone'] }}</a></dd></div>
                 <div><dt>{{ $site['max_label'] }}</dt><dd><a href="{{ $site['max'] }}" data-analytics-goal="max_click">Написать в {{ $site['max_label'] }}</a></dd></div>
-                <div><dt>Email</dt><dd><a href="mailto:{{ $site['email'] }}">{{ $site['email'] }}</a></dd></div>
+                <div><dt>Email</dt><dd><a href="mailto:{{ $site['email'] }}" data-analytics-goal="email_click">{{ $site['email'] }}</a></dd></div>
                 <div><dt>Город</dt><dd>{{ $site['city'] }}</dd></div>
                 <div><dt>ВК</dt><dd><a href="{{ $site['vk'] }}">vk.com/marmelama.omsk</a></dd></div>
             </dl>

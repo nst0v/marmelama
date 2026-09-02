@@ -85,7 +85,7 @@
                     <h2>По этому фильтру котят нет</h2>
                     <p>Посмотрите другие категории или напишите нам — расскажем о ближайших помётах.</p>
                     <div class="button-row">
-                        <a class="button" href="{{ route('contacts') }}#contact-form">Узнать о новых помётах</a>
+                        <a class="button" href="{{ route('contacts') }}#contact-form" data-analytics-goal="contact_form_open">Узнать о новых помётах</a>
                         @if($hasAdditionalFilters)
                             <a class="button secondary" href="{{ route('kittens.index', ['status' => $status]) }}">Сбросить фильтры</a>
                         @else

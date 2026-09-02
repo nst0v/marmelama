@@ -92,13 +92,13 @@
                 <div class="kitten-profile-actions">
                     @if($kitten->status === 'available')
                         <a class="button full" href="{{ $contactUrl }}" data-analytics-goal="kitten_contact_click">Обсудить</a>
-                        <a class="button secondary full" href="{{ $site['max'] }}" target="_blank" rel="noopener noreferrer">Написать в {{ $site['max_label'] }}</a>
+                        <a class="button secondary full" href="{{ $site['max'] }}" target="_blank" rel="noopener noreferrer" data-analytics-goal="max_click">Написать в {{ $site['max_label'] }}</a>
                     @elseif($kitten->status === 'reserved')
                         <a class="button full" href="{{ $contactUrl }}" data-analytics-goal="kitten_contact_click">Уточнить статус брони</a>
                         <a class="button secondary full" href="{{ route('kittens.index', ['status' => 'available']) }}">Смотреть свободных</a>
                     @else
                         <a class="button full" href="{{ route('kittens.index', ['status' => 'available']) }}">Смотреть свободных котят</a>
-                        <a class="button secondary full" href="{{ route('contacts') }}#contact-form">Узнать о новых помётах</a>
+                        <a class="button secondary full" href="{{ route('contacts') }}#contact-form" data-analytics-goal="contact_form_open">Узнать о новых помётах</a>
                     @endif
                 </div>
 
@@ -117,7 +117,7 @@
         <div class="kitten-assurance-grid">
             <article><span>01</span><h3>Подготовка</h3><p>Расскажем об уходе, кормлении и спокойной адаптации котёнка дома.</p></article>
             <article><span>02</span><h3>Доставка</h3><p>Организуем самовывоз из Омска или доставку по России.</p><a href="{{ route('delivery') }}">Условия доставки →</a></article>
-            <article><span>03</span><h3>Связь</h3><p>Остаёмся на связи и отвечаем на вопросы после переезда.</p><a href="{{ route('contacts') }}">Связаться с нами →</a></article>
+            <article><span>03</span><h3>Связь</h3><p>Остаёмся на связи и отвечаем на вопросы после переезда.</p><a href="{{ route('contacts') }}" data-analytics-goal="contact_form_open">Связаться с нами →</a></article>
         </div>
     </div>
 </section>

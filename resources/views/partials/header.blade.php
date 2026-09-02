@@ -25,7 +25,7 @@
 
         <div class="header-actions">
             <div class="header-contact-row">
-                <a class="button small header-booking" href="{{ route('contacts') }}#contact-form">Забронировать</a>
+                <a class="button small header-booking" href="{{ route('contacts') }}#contact-form" data-analytics-goal="contact_form_open">Забронировать</a>
                 <a class="phone-link" href="tel:{{ $site['phone_href'] }}" aria-label="Позвонить по номеру {{ $site['phone'] }}" data-analytics-goal="phone_click">
                     <span class="mobile-call-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24">

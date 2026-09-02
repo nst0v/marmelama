@@ -42,12 +42,16 @@ const initializeMetrika = () => {
 
   const script = document.createElement('script');
   script.async = true;
-  script.src = 'https://mc.yandex.ru/metrika/tag.js';
+  script.src = `https://mc.yandex.ru/metrika/tag.js?id=${metrikaId}`;
   document.head.appendChild(script);
 
   window.ym(metrikaId, 'init', {
-    accurateTrackBounce: true,
+    ssr: true,
     clickmap: true,
+    ecommerce: 'dataLayer',
+    referrer: document.referrer,
+    url: window.location.href,
+    accurateTrackBounce: true,
     trackLinks: true,
   });
 

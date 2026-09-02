@@ -18,6 +18,7 @@ class AnalyticsTest extends TestCase
             ->assertSee('data-metrika-id="111660257"', false)
             ->assertSee('data-analytics-consent', false)
             ->assertSeeText('Аналитические cookie')
+            ->assertSee('js/site.js?v=', false)
             ->assertSee('data-analytics-consent-settings', false);
     }
 
@@ -38,6 +39,12 @@ class AnalyticsTest extends TestCase
             ->assertOk()
             ->assertSee('data-analytics-goal="phone_click"', false)
             ->assertSee('data-analytics-goal="max_click"', false)
+            ->assertSee('data-analytics-goal="email_click"', false)
             ->assertSee('name="privacy_consent"', false);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('data-analytics-goal="max_click"', false)
+            ->assertSee('data-analytics-goal="contact_form_open"', false);
     }
 }

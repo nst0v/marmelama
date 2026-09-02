@@ -31,6 +31,6 @@
     @if($metrikaId > 0)
         @include('partials.analytics-consent')
     @endif
-    <script src="{{ asset('js/site.js') }}" defer></script>
+    <script src="{{ asset('js/site.js') }}?v={{ filemtime(public_path('js/site.js')) }}" defer></script>
 </body>
 </html>

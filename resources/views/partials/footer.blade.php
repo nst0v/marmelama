@@ -38,7 +38,7 @@
             <p>Позвоните или выберите удобный мессенджер — ответим на вопросы о котятах и питомнике.</p>
             <div class="footer-contact-links">
                 <a class="footer-phone" href="tel:{{ $site['phone_href'] }}" data-analytics-goal="phone_click">{{ $site['phone'] }}</a>
-                <a class="footer-email" href="mailto:{{ $site['email'] }}">{{ $site['email'] }}</a>
+                <a class="footer-email" href="mailto:{{ $site['email'] }}" data-analytics-goal="email_click">{{ $site['email'] }}</a>
             </div>
             <div class="footer-messengers" role="group" aria-label="Мессенджеры питомника">
                 <a class="footer-messenger" href="{{ $site['max'] }}" target="_blank" rel="noopener noreferrer" aria-label="Написать в MAX" data-footer-messenger="max" data-analytics-goal="max_click">
