@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ContactRequests\Pages;
 
 use App\Filament\Resources\ContactRequests\ContactRequestResource;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
 
@@ -14,6 +15,7 @@ class EditContactRequest extends EditRecord
     {
         return [
             ViewAction::make(),
+            DeleteAction::make()->label('Удалить заявку'),
         ];
     }
 }

@@ -7,14 +7,15 @@
     <meta name="theme-color" content="#FAF7F2">
     <title>@yield('title', 'МарМелАма: питомник европейской бурмы')</title>
     <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/site.css') }}?v={{ filemtime(public_path('css/site.css')) }}">
 </head>
 @php($metrikaId = (int) config('services.yandex_metrika.id'))
 <body
-    @if($metrikaId > 0) data-metrika-id="{{ $metrikaId }}" @endif
+    @if($metrikaId > 0)
+        data-metrika-id="{{ $metrikaId }}"
+        data-analytics-consent-version="{{ config('legal.documents.cookies.version') }}"
+        data-analytics-consent-days="{{ config('legal.retention.analytics_choice_days') }}"
+    @endif
     @if(session('metrika_goal')) data-metrika-goal="{{ session('metrika_goal') }}" @endif
 >
     @include('partials.header')

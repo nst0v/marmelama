@@ -23,10 +23,10 @@ Route::get('/archive', fn () => redirect()->route('kittens.index', [
     ...request()->query(),
     'status' => 'sold',
 ], 301))->name('archive');
-Route::get('/politics', fn () => view('pages.placeholder', [
-    'title' => 'Политика конфиденциальности',
-    'text' => 'Страница будет заполнена юридическим текстом перед публикацией.',
-]))->name('politics');
+Route::view('/politics', 'pages.legal.privacy')->name('politics');
+Route::view('/personal-data-consent', 'pages.legal.personal-data-consent')->name('personal-data-consent');
+Route::view('/cookies', 'pages.legal.cookies')->name('cookies');
+Route::view('/requisites', 'pages.legal.requisites')->name('requisites');
 
 Route::get('/pets', fn () => redirect()->route('kittens.index', request()->query(), 301));
 Route::get('/pets/{slug}', fn (string $slug) => redirect()->route('kittens.show', [

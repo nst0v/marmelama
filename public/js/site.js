@@ -4,24 +4,90 @@ const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').match
 
 const metrikaId = Number.parseInt(document.body.dataset.metrikaId ?? '', 10);
 const analyticsConsentKey = 'marmelama.analyticsConsent';
+const analyticsConsentVersion = document.body.dataset.analyticsConsentVersion ?? '';
+const configuredConsentDays = Number.parseInt(document.body.dataset.analyticsConsentDays ?? '', 10);
+const analyticsConsentDays = Number.isInteger(configuredConsentDays) && configuredConsentDays > 0
+  ? configuredConsentDays
+  : 365;
+const analyticsConsentMaxAge = analyticsConsentDays * 24 * 60 * 60 * 1000;
 const analyticsConsent = document.querySelector('[data-analytics-consent]');
 let metrikaInitialized = false;
 let pendingPageGoalSent = false;
 
-const readAnalyticsConsent = () => {
+const removeStoredAnalyticsConsent = () => {
   try {
-    return window.localStorage.getItem(analyticsConsentKey);
+    window.localStorage.removeItem(analyticsConsentKey);
   } catch {
-    return null;
+    // Storage can be disabled by the browser.
   }
 };
 
-const writeAnalyticsConsent = (value) => {
+const readAnalyticsConsent = () => {
   try {
-    window.localStorage.setItem(analyticsConsentKey, value);
+    const savedValue = window.localStorage.getItem(analyticsConsentKey);
+
+    if (!savedValue) return null;
+
+    const savedConsent = JSON.parse(savedValue);
+    const decidedAt = Date.parse(savedConsent.decidedAt);
+    const isCurrent = ['accepted', 'declined'].includes(savedConsent.status)
+      && savedConsent.version === analyticsConsentVersion
+      && Number.isFinite(decidedAt)
+      && Date.now() - decidedAt >= 0
+      && Date.now() - decidedAt <= analyticsConsentMaxAge;
+
+    if (isCurrent) return savedConsent.status;
+  } catch {
+    // Legacy or malformed choices are replaced with a fresh decision.
+  }
+
+  removeStoredAnalyticsConsent();
+
+  return null;
+};
+
+const writeAnalyticsConsent = (status) => {
+  try {
+    window.localStorage.setItem(analyticsConsentKey, JSON.stringify({
+      status,
+      version: analyticsConsentVersion,
+      decidedAt: new Date().toISOString(),
+    }));
   } catch {
     // The visitor can still use this choice for the current page.
   }
+};
+
+const isMetrikaStorageKey = (key) => /^(?:_ym|yandex|metrika|lastHit|lastHitTime|hitParam|counterNum)/i.test(key);
+
+const clearMetrikaWebStorage = (storage) => {
+  try {
+    Array.from({ length: storage.length }, (_, index) => storage.key(index))
+      .filter((key) => key && key !== analyticsConsentKey && isMetrikaStorageKey(key))
+      .forEach((key) => storage.removeItem(key));
+  } catch {
+    // Storage can be disabled by the browser.
+  }
+};
+
+const clearMetrikaStorage = () => {
+  clearMetrikaWebStorage(window.localStorage);
+  clearMetrikaWebStorage(window.sessionStorage);
+
+  const hostname = window.location.hostname.replace(/^www\./, '');
+  const domains = hostname && hostname !== 'localhost'
+    ? ['', `; domain=${hostname}`, `; domain=.${hostname}`]
+    : [''];
+
+  document.cookie.split(';').forEach((cookie) => {
+    const name = cookie.split('=', 1)[0]?.trim();
+
+    if (!name || (!name.startsWith('_ym') && name !== 'yabs-sid')) return;
+
+    domains.forEach((domain) => {
+      document.cookie = `${name}=; Max-Age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/${domain}; SameSite=Lax`;
+    });
+  });
 };
 
 const sendMetrikaGoal = (goal) => {
@@ -80,7 +146,9 @@ if (Number.isInteger(metrikaId) && metrikaId > 0) {
 
   if (savedConsent === 'accepted') {
     initializeMetrika();
-  } else if (savedConsent !== 'declined') {
+  } else if (savedConsent === 'declined') {
+    clearMetrikaStorage();
+  } else {
     showAnalyticsConsent();
   }
 
@@ -93,6 +161,7 @@ if (Number.isInteger(metrikaId) && metrikaId > 0) {
   analyticsConsent?.querySelector('[data-analytics-decline]')?.addEventListener('click', () => {
     writeAnalyticsConsent('declined');
     hideAnalyticsConsent();
+    clearMetrikaStorage();
 
     if (metrikaInitialized) window.location.reload();
   });

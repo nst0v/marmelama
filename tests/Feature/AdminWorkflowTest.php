@@ -268,6 +268,7 @@ class AdminWorkflowTest extends TestCase
             'mail_status' => 'sent',
             'mail_sent_at' => now(),
             'privacy_consented_at' => now(),
+            'privacy_consent_version' => '2026-09-02',
             'utm_source' => 'yandex',
             'utm_medium' => 'cpc',
             'utm_campaign' => 'burma_omsk',
@@ -307,6 +308,8 @@ class AdminWorkflowTest extends TestCase
             ->assertSee('tel:+79992223344', false)
             ->assertSee('mailto:maria@example.test', false)
             ->assertSee('Письмо отправлено')
+            ->assertSee('Согласие на обработку персональных данных')
+            ->assertSee('2026-09-02')
             ->assertSee('Реклама и источник')
             ->assertSee('burma_omsk')
             ->assertSee('бурманские котята')

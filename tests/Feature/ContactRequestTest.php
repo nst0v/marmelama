@@ -49,6 +49,7 @@ class ContactRequestTest extends TestCase
         $this->assertSame('sent', $request->mail_status);
         $this->assertNotNull($request->mail_sent_at);
         $this->assertNotNull($request->privacy_consented_at);
+        $this->assertSame(config('legal.documents.personal_data_consent.version'), $request->privacy_consent_version);
         $this->assertNull($request->mail_error);
     }
 

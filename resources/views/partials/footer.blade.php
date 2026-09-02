@@ -58,7 +58,7 @@
     </div>
 
     <div class="container footer-bottom">
-        <span>© {{ date('Y') }} МарМелАма</span>
+        <span>© {{ date('Y') }} МарМелАма · {{ config('legal.operator.name') }} · ИНН {{ config('legal.operator.inn') }}</span>
         <a class="footer-developer" href="https://max.ru/u/f9LHodD0cOJDqN_zS_D2YQqZoU_FK0wjb0ejeJUjZlesoCXwVEDair7LHHg" target="_blank" rel="noopener noreferrer">
             Разработаем сайт для вас
             <span aria-hidden="true">↗</span>
@@ -67,7 +67,10 @@
             @if((int) config('services.yandex_metrika.id') > 0)
                 <button class="footer-cookie-settings" type="button" data-analytics-consent-settings>Настройки cookie</button>
             @endif
-            <a class="footer-politics" href="{{ route('politics') }}">Политика конфиденциальности</a>
+            <a class="footer-politics" href="{{ route('politics') }}">Персональные данные</a>
+            <a class="footer-politics" href="{{ route('personal-data-consent') }}">Согласие</a>
+            <a class="footer-politics" href="{{ route('cookies') }}">Cookie</a>
+            <a class="footer-politics" href="{{ route('requisites') }}">Реквизиты</a>
         </div>
     </div>
 </footer>

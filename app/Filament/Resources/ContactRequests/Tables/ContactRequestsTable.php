@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ContactRequests\Tables;
 
 use App\Models\ContactRequest;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
@@ -80,6 +81,7 @@ class ContactRequestsTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make()->label('Статус'),
+                DeleteAction::make()->label('Удалить'),
             ]);
     }
 }

@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'email',
     'message',
     'privacy_consented_at',
+    'privacy_consent_version',
     'utm_source',
     'utm_medium',
     'utm_campaign',

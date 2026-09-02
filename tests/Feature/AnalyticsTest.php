@@ -16,8 +16,12 @@ class AnalyticsTest extends TestCase
         $this->get('/')
             ->assertOk()
             ->assertSee('data-metrika-id="111660257"', false)
+            ->assertSee('data-analytics-consent-version="2026-09-02"', false)
+            ->assertSee('data-analytics-consent-days="365"', false)
             ->assertSee('data-analytics-consent', false)
             ->assertSeeText('Аналитические cookie')
+            ->assertSee(route('cookies'), false)
+            ->assertSeeText('Отказ не влияет на работу сайта и формы.')
             ->assertSee('js/site.js?v=', false)
             ->assertSee('data-analytics-consent-settings', false);
     }

@@ -59,6 +59,20 @@ class ContactRequestInfolist
                             ]),
                     ])
                     ->columnSpanFull(),
+                Section::make('Согласие на обработку персональных данных')
+                    ->schema([
+                        Grid::make(['default' => 1, 'md' => 2])
+                            ->schema([
+                                TextEntry::make('privacy_consented_at')
+                                    ->label('Получено')
+                                    ->dateTime('d.m.Y H:i')
+                                    ->placeholder('Не зафиксировано'),
+                                TextEntry::make('privacy_consent_version')
+                                    ->label('Редакция согласия')
+                                    ->placeholder('Создано до учёта редакций'),
+                            ]),
+                    ])
+                    ->columnSpanFull(),
                 Section::make('Реклама и источник')
                     ->description('Показывает, откуда посетитель пришёл перед отправкой заявки.')
                     ->schema([

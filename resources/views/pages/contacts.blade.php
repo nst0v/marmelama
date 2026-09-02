@@ -39,8 +39,9 @@
             <label>Сообщение<textarea name="message" rows="6" required>{{ old('message', $selectedKitten ? 'Здравствуйте! Хочу узнать подробнее про котёнка '.$selectedKitten->display_name : '') }}</textarea></label>
             <label class="contact-consent">
                 <input name="privacy_consent" type="checkbox" value="1" @checked(old('privacy_consent')) required>
-                <span>Я соглашаюсь на обработку персональных данных в соответствии с <a href="{{ route('politics') }}" target="_blank">политикой конфиденциальности</a>.</span>
+                <span>Я даю согласие на обработку персональных данных на условиях <a href="{{ route('personal-data-consent') }}" target="_blank" rel="noopener noreferrer">Согласия</a>.</span>
             </label>
+            <p class="contact-privacy-note">Перед отправкой ознакомьтесь с <a href="{{ route('politics') }}" target="_blank" rel="noopener noreferrer">Политикой обработки персональных данных</a>.</p>
             @if($errors->any())<div class="form-errors">Проверьте заполнение полей.</div>@endif
             <button class="button" type="submit">Отправить сообщение</button>
         </form>

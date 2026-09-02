@@ -410,6 +410,7 @@ class SiteController extends Controller
             'email' => $data['email'] ?? null,
             'message' => $data['message'],
             'privacy_consented_at' => now(),
+            'privacy_consent_version' => config('legal.documents.personal_data_consent.version'),
             'utm_source' => $attribution['utm_source'] ?? null,
             'utm_medium' => $attribution['utm_medium'] ?? null,
             'utm_campaign' => $attribution['utm_campaign'] ?? null,
