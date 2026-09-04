@@ -12,12 +12,31 @@ class LitterCatalogTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_status_filters_follow_the_public_card_status(): void
+    public function test_available_litter_without_kittens_is_not_treated_as_archive(): void
+    {
+        $litter = $this->createLitter('Помёт П', 'litter-p', '2026-08-13');
+
+        $this->get(route('litters.index'))
+            ->assertOk()
+            ->assertSeeText($litter->title)
+            ->assertSee('<span class="status available">Есть свободные</span>', false)
+            ->assertDontSee('<span class="status sold">Архив</span>', false);
+
+        $this->get(route('litters.index', ['status' => 'available']))
+            ->assertOk()
+            ->assertSeeText($litter->title);
+
+        $this->get(route('litters.index', ['status' => 'archive']))
+            ->assertOk()
+            ->assertDontSeeText($litter->title);
+    }
+
+    public function test_status_filters_and_cards_follow_the_litter_status(): void
     {
         $available = $this->createLitter('Свободный помёт', 'available-litter', '2026-05-10');
-        $archive = $this->createLitter('Завершённый помёт', 'archive-litter', '2025-05-10');
+        $archive = $this->createLitter('Завершённый помёт', 'archive-litter', '2025-05-10', 'archive');
         $planned = $this->createLitter('Будущий помёт', 'planned-litter', null, 'planned');
-        $hiddenAvailability = $this->createLitter('Скрытая доступность', 'hidden-availability', '2024-05-10');
+        $availableWithHiddenKitten = $this->createLitter('Скрытая карточка котёнка', 'hidden-availability', '2024-05-10');
 
         Kitten::create([
             'litter_id' => $available->id,
@@ -34,7 +53,7 @@ class LitterCatalogTest extends TestCase
             'is_visible' => true,
         ]);
         Kitten::create([
-            'litter_id' => $hiddenAvailability->id,
+            'litter_id' => $availableWithHiddenKitten->id,
             'name' => 'Скрытый котёнок',
             'slug' => 'hidden-kitten',
             'status' => 'available',
@@ -44,15 +63,16 @@ class LitterCatalogTest extends TestCase
         $this->get(route('litters.index', ['status' => 'available']))
             ->assertOk()
             ->assertSeeText($available->title)
+            ->assertSeeText($availableWithHiddenKitten->title)
             ->assertDontSeeText($archive->title)
             ->assertDontSeeText($planned->title)
-            ->assertDontSeeText($hiddenAvailability->title);
+            ->assertSee('<span class="status available">Есть свободные</span>', false);
 
         $this->get(route('litters.index', ['status' => 'archive']))
             ->assertOk()
             ->assertSeeText($archive->title)
-            ->assertSeeText($hiddenAvailability->title)
             ->assertDontSeeText($available->title)
+            ->assertDontSeeText($availableWithHiddenKitten->title)
             ->assertDontSeeText($planned->title);
     }
 

@@ -86,6 +86,7 @@ class LitterForm
                                 ->visible(fn (Get $get): bool => blank($get('mother_id'))),
                             Select::make('status')
                                 ->label('Статус')
+                                ->helperText('Определяет раздел и пометку помёта на сайте. Статусы отдельных котят редактируются отдельно.')
                                 ->options([
                                     'planned' => 'Планируется',
                                     'available' => 'Есть свободные котята',

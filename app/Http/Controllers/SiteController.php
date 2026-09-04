@@ -226,20 +226,10 @@ class SiteController extends Controller
             ->where('is_visible', true);
 
         match ($status) {
-            'available' => $query
-                ->where('status', 'available')
-                ->whereHas('kittens', fn ($kittens) => $kittens
-                    ->where('is_visible', true)
-                    ->where('status', 'available')),
+            'available' => $query->where('status', 'available'),
             'planned' => $query->where('status', 'planned'),
             'reserved' => $query->where('status', 'reserved'),
-            'archive' => $query->where(fn ($litters) => $litters
-                ->where('status', 'archive')
-                ->orWhere(fn ($availableWithoutKittens) => $availableWithoutKittens
-                    ->where('status', 'available')
-                    ->whereDoesntHave('kittens', fn ($kittens) => $kittens
-                        ->where('is_visible', true)
-                        ->where('status', 'available')))),
+            'archive' => $query->where('status', 'archive'),
             default => null,
         };
 

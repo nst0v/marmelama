@@ -3,13 +3,12 @@
     $boys = $litter->kittens->where('sex', 'male')->count();
     $girls = $litter->kittens->where('sex', 'female')->count();
     $available = $litter->kittens->where('status', 'available')->count();
-    $publicStatus = $litter->status === 'available' && $available === 0 ? 'archive' : $litter->status;
     $status = [
         'planned' => ['Планируется', 'reserved'],
         'available' => ['Есть свободные', 'available'],
         'reserved' => ['Все в брони', 'reserved'],
         'archive' => ['Архив', 'sold'],
-    ][$publicStatus] ?? ['Статус уточняется', 'sold'];
+    ][$litter->status] ?? ['Статус уточняется', 'sold'];
     $displayTitle = $litter->letter ? 'Помёт '.$litter->letter : $litter->title;
     $rawTitle = \App\Support\RichText::plain($litter->title);
     $titleLooksGenerated = (bool) preg_match('/\d{2}\.\d{2}\.\d{4}/u', $rawTitle)
