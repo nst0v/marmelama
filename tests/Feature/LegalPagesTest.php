@@ -14,7 +14,7 @@ class LegalPagesTest extends TestCase
         foreach (['politics', 'personal-data-consent', 'cookies', 'requisites'] as $routeName) {
             $this->get(route($routeName))
                 ->assertOk()
-                ->assertSeeText('Баловатская Елена Александровна')
+                ->assertSeeText('Иванова Елена Александровна')
                 ->assertSeeText('550506959446')
                 ->assertSeeText('2 сентября 2026 г.');
         }
@@ -57,7 +57,7 @@ class LegalPagesTest extends TestCase
             ->assertSee(route('personal-data-consent'), false)
             ->assertSee(route('cookies'), false)
             ->assertSee(route('requisites'), false)
-            ->assertSeeText('Баловатская Елена Александровна')
+            ->assertSeeText('Иванова Елена Александровна')
             ->assertSeeText('ИНН 550506959446')
             ->assertDontSee('fonts.googleapis.com', false)
             ->assertDontSee('fonts.gstatic.com', false);
